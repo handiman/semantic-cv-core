@@ -1,6 +1,6 @@
 <h1 style="display: flex; align-items: center; justify-content: space-between;">
   <span>Semantic‑CV Core</span>
-  <img src="https://semantic.cv/img/semantikitten-coding.png" alt="Coding Semantikitten" height="100" style="margin-block:20px;" />
+  <img src="https://semantic.cv/img/semantikitten-coding.png" alt="Coding Semantikitten" height="100" align="right" style="margin-block:20px;" />
 </h1>
 
 Semantic‑CV Core contains the **shared logic** used by both the Semantic‑CV CLI and the upcoming site at [semantic.cv][semantic-cv]. It provides the foundational processing pipeline that turns raw CV data into clean, deterministic output.
