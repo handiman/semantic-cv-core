@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "target": "ES2022",
+    "module": "node20",
+    "moduleResolution": "node16",
+    "strict": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "include": ["**/*.ts"]
+}
