@@ -5,10 +5,9 @@ import {
   removeUndefined,
   setType,
   singleValues,
-  sortFields
 } from "../normalize.js";
 import pipe from "../pipe.js";
-import sort from "../sort.js";
+import sort, { sortFields } from "../sort.js";
 
 /**
  * Normalize the `hasCertification` array on a Person object.
