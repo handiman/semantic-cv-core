@@ -23,6 +23,7 @@ import normalizeAlumniOf from "./normalize/alumniOf.js";
 import normalizeLifeEvent from "./normalize/lifeEvent.js";
 import normalizeHasCredential from "./normalize/hasCredential.js";
 import normalizeHasCertification from "./normalize/hasCertification.js";
+import { sortFields } from "./sort.js";
 
 /**
  * Fix casing of known schema.org keys (case‑insensitive match).
@@ -80,37 +81,6 @@ function fixCasing<T>(value: T): T {
     }
 
     return obj as T;
-  }
-
-  return value;
-}
-
-/**
- * Sort object keys deterministically:
- *   1. @context, @type
- *   2. all other keys alphabetically
- */
-export function sortFields(value: any): any {
-  if (Array.isArray(value)) {
-    return value.map(sortFields);
-  }
-
-  if (value !== null && typeof value === "object") {
-    const obj = value as Record<string, unknown>;
-
-    const priority = ["@context", "@type"] as const;
-
-    const entries = Object.entries(obj).map(([key, val]) => {
-      return [key, sortFields(val)] as [string, unknown];
-    });
-
-    const prioritized = entries.filter(([key]) => priority.includes(key as "@context" | "@type"));
-
-    const rest = entries
-      .filter(([key]) => !priority.includes(key as "@context" | "@type"))
-      .sort(([a], [b]) => a.localeCompare(b));
-
-    return Object.fromEntries([...prioritized, ...rest]);
   }
 
   return value;
@@ -258,7 +228,7 @@ export const removeEmpty = (obj: string | Array<any>) =>
 
 /**
  * Full normalization pipeline for Person objects.
- */    
+ */
 export const normalize = {
   casing: fixCasing,
   person: pipe(

@@ -5,11 +5,10 @@ import {
   removeUndefined,
   setType,
   singleValues,
-  sortFields,
   toSingle
 } from "../normalize.js";
 import pipe from "../pipe.js";
-import sort from "../sort.js";
+import sort, { sortFields } from "../sort.js";
 
 /**
  * Normalization for `alumniOf` entries.
