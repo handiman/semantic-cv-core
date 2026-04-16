@@ -47,6 +47,18 @@ export async function renderHTML(options: {
         for (const meta of [...og(person), ...twitter(person)]) {
           head.prepend(`\n  ${meta}`, html);
         }
+        head.append(
+          `
+          <style type="text/css">
+          .scv-footer {
+            text-align:center;
+            font-size: .9rem;
+            opacity: .5;
+          }
+          </style>
+          `,
+          html
+        );
       }
     })
     .on(`head script[type="module"]`, {
@@ -86,6 +98,10 @@ export async function renderHTML(options: {
           `,
           html
         );
+        body.append(
+          `<footer class="scv-footer">Rendered with <a href="https://semantic.cv">semantic.cv</a> — Theme: <a href="https://semantic.cv/preview?theme=${theme.id}">${theme.id}</a></footer>`,
+          html
+        );
       }
     });
 
@@ -106,7 +122,6 @@ export async function renderHTML(options: {
 }
 
 export default renderHTML;
-
 
 const html = { html: true };
 
@@ -177,4 +192,3 @@ type Theme = {
   renderCSS(person: any): Promise<string>;
   renderJS(person: any): Promise<string>;
 };
-
