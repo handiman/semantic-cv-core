@@ -50,11 +50,9 @@ export async function renderHTML(options: {
         head.append(
           `
           <style type="text/css">
-          .scv-footer {
-            text-align:center;
-            font-size: .9rem;
-            opacity: .5;
-          }
+          .scv-footer { text-align:center; font-size: .9rem; opacity: .5; } 
+          .scv-footer a { text-decoration: none; }
+          .scv-footer a:hover { text-decoration: underline; }
           </style>
           `,
           html
