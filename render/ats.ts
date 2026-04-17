@@ -17,8 +17,13 @@ import normalize from "../normalize.js";
  *
  * @param person Normalized schema.org/Person object.
  * @param writable WritableStream that receives the plain‑text output.
+ * @param closeStream Whether to close the stream inside the method (for Node) or if the caller should do it (Worker)
  */
-export async function renderATS(person: any, writable: WritableStream) {
+export async function renderATS(
+  person: any,
+  writable: WritableStream,
+  closeStream: boolean = false
+) {
   const writer = writable.getWriter();
   pipe(
     normalize,
@@ -37,7 +42,9 @@ export async function renderATS(person: any, writable: WritableStream) {
     hasCertification(writer),
     projects(writer)
   )(person);
-  writer.close();
+  if (closeStream) {
+    writer.close();
+  }
 }
 
 export default renderATS;
