@@ -33,7 +33,7 @@ function fixCasing<T>(value: T): T {
   const validKeys = [
     "@context",
     "@type",
-    "@theme",
+    "theme",
     "name",
     "description",
     "jobTitle",
@@ -85,6 +85,19 @@ function fixCasing<T>(value: T): T {
 
   return value;
 }
+
+const fixTheme = (person: any) => {
+  if (person["@theme"]) {
+    const result = {
+      ...person,
+      theme: person["@theme"]
+    };
+    delete result["@theme"];
+    return result;
+  }
+
+  return person;
+};
 
 /**
  * Convert a value into an array, removing empty/null items.
@@ -183,7 +196,7 @@ export const setType = (type: string) => (initial: any) => {
  */
 const setContext = (person: any) => ({
   ...person,
-  "@context": "https://schema.org"
+  "@context": ["https://schema.org", "https://semantic.cv/context/latest.jsonld"]
 });
 
 /**
@@ -233,8 +246,9 @@ export const normalize = {
   casing: fixCasing,
   person: pipe(
     fixCasing,
+    fixTheme,
     singleValues([
-      "@theme",
+      "theme",
       "name",
       "jobTitle",
       "description",
