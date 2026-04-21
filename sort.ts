@@ -5,7 +5,10 @@ const dateDescending = (a: any, b: any) => {
   return (isNaN(dateB) ? now : dateB) - (isNaN(dateA) ? now : dateA);
 };
 // Global priority (always first)
-const GLOBAL_PRIORITY = ["@context", "@type", "theme"];
+const GLOBAL_PRIORITY = ["@context", "@type"];
+
+// Bottom priority (always last)
+const BOTTOM_PRIORITY = ["theme"];
 
 // Person-level priority
 const PERSON_PRIORITY = [
@@ -24,23 +27,10 @@ const PERSON_PRIORITY = [
 ];
 
 // Work Role priority
-const ROLE_PRIORITY = [
-  "@type",
-  "roleName",
-  "description",
-  "startDate",
-  "endDate",
-  "worksFor"
-];
+const ROLE_PRIORITY = ["@type", "roleName", "description", "startDate", "endDate", "worksFor"];
 
 // Education Role priority (alumniOf)
-const ALUMNI_PRIORITY = [
-  "@type",
-  "alumniOf",
-  "description",
-  "startDate",
-  "endDate"
-];
+const ALUMNI_PRIORITY = ["@type", "alumniOf", "description", "startDate", "endDate"];
 
 // Special ordering for worksFor entries
 const WORKSFOR_TYPE_ORDER = ["Project", "Organization"];
@@ -51,7 +41,7 @@ const WORKSFOR_TYPE_ORDER = ["Project", "Organization"];
 export function sortFields(value: any, parentKey?: string): any {
   // Handle arrays
   if (Array.isArray(value)) {
-    const sortedArray = value.map(v => sortFields(v));
+    const sortedArray = value.map((v) => sortFields(v));
 
     if (parentKey === "worksFor") {
       return sortedArray.sort((a, b) => {
@@ -95,10 +85,20 @@ export function sortFields(value: any, parentKey?: string): any {
       const ai = priority.indexOf(a);
       const bi = priority.indexOf(b);
 
+      // 1. Top-priority fields
       if (ai !== -1 && bi !== -1) return ai - bi;
       if (ai !== -1) return -1;
       if (bi !== -1) return 1;
 
+      // 2. Bottom-priority fields (always last)
+      const aBottom = BOTTOM_PRIORITY.includes(a);
+      const bBottom = BOTTOM_PRIORITY.includes(b);
+
+      if (aBottom && bBottom) return 0;
+      if (aBottom) return 1;
+      if (bBottom) return -1;
+
+      // 3. Alphabetical fallback
       return a.localeCompare(b);
     });
 
