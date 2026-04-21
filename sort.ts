@@ -5,7 +5,7 @@ const dateDescending = (a: any, b: any) => {
   return (isNaN(dateB) ? now : dateB) - (isNaN(dateA) ? now : dateA);
 };
 // Global priority (always first)
-const GLOBAL_PRIORITY = ["@context", "@type", "@theme"];
+const GLOBAL_PRIORITY = ["@context", "@type", "theme"];
 
 // Person-level priority
 const PERSON_PRIORITY = [
