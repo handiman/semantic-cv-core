@@ -1,4 +1,5 @@
 import analyzer from "../analyze.js";
+import normalize from "../normalize.js";
 
 /**
  * Render a complete Semantic‑CV HTML document.
@@ -38,7 +39,7 @@ export async function renderHTML(options: {
   const themeHTML = await theme.renderHTML(person);
   const themeCSS = await theme.renderCSS(person);
   const themeJS = await theme.renderJS(person);
-  const json = JSON.stringify(person, null, 0);
+  const json = JSON.stringify(stripVocab(person), null, 0);
   const analysisResults = analyze(json);
 
   transformer
@@ -170,6 +171,13 @@ const cleananalysisResults = (analysisResults: Record<string, any>) => {
   } else {
     return JSON.stringify(analysisResults, null, 2);
   }
+};
+
+const stripVocab = (person: any) => {
+  const result = { ...person };
+  delete result.theme;
+  result["@context"] = "https://schema.org";
+  return result;
 };
 
 const analyze = (json: string) => cleananalysisResults(analyzer(json));
