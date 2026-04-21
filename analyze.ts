@@ -163,7 +163,7 @@ const url = (value: any) =>
 
 /**
  * Require a field to equal a specific value.
- */      
+ */
 export const mustBe =
   (field: string) =>
   (expected: any) =>
@@ -181,8 +181,30 @@ export const mustBe =
   };
 
 /**
+ *
+ * @param args Require a field to equal any of the provided values:
+ */
+export const canBe =
+  (field: string) =>
+  (...validValues: Array<any>) =>
+  (context: AnalysisContext) => {
+    const { object, results } = context;
+    const value = object[field];
+    const isValid = validValues.some((v) => equals(value, v));
+    return {
+      object,
+      results: {
+        ...results,
+        [field]: isValid
+          ? Success
+          : error(`Value must be any of ${JSON.stringify(validValues, null, 2)}`)
+      }
+    };
+  };
+
+/**
  * Require a field to be present and non‑empty.
- */  
+ */
 export const mandatory =
   (field: string) =>
   (context: AnalysisContext): AnalysisContext => {
@@ -240,7 +262,7 @@ export const optional =
 /**
  * Recursively find all *.cv.json files in a directory tree.
  */
-  function findJsonLdFiles(dir: string): string[] {
+function findJsonLdFiles(dir: string): string[] {
   const result: string[] = [];
 
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -255,6 +277,9 @@ export const optional =
 
   return result;
 }
+
+const schemaOrg = "https://schema.org";
+const semanticCV = (version: any) => [schemaOrg, `https://semantic.cv/context/${version}.jsonld`];
 
 /**
  * Analyze a raw JSON‑LD string and return a map of field → AnalysisResult.
@@ -271,7 +296,7 @@ export function analyze(raw: string): Record<string, AnalysisResult> {
     results: {}
   };
   const { results } = pipe(
-    mustBe("@context")("https://schema.org"),
+    canBe("@context")(schemaOrg, semanticCV("latest"), semanticCV("1.0")),
     mustBe("@type")("Person"),
     mandatory("name"),
     mandatory("jobTitle"),
@@ -342,3 +367,10 @@ export async function analyzeDirectory(dir: string, log: any = process.stdout) {
 }
 
 export default analyze;
+
+const equals = (a: any, b: any): boolean => {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((v, i) => equals(v, b[i]));
+  }
+  return a === b;
+};

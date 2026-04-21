@@ -183,7 +183,7 @@ export const setType = (type: string) => (initial: any) => {
  */
 const setContext = (person: any) => ({
   ...person,
-  "@context": "https://schema.org"
+  "@context": ["https://schema.org", "https://semantic.cv/context/latest.jsonld"]
 });
 
 /**
