@@ -1,5 +1,5 @@
 import analyzer from "../analyze.js";
-import normalize from "../normalize.js";
+const siteName = "Semantic CV";
 
 /**
  * Render a complete Semantic‑CV HTML document.
@@ -41,15 +41,18 @@ export async function renderHTML(options: {
   const themeJS = await theme.renderJS(person);
   const json = JSON.stringify(stripVocab(person), null, 0);
   const analysisResults = analyze(json);
+  const { description } = person;
 
   transformer
     .on(`head`, {
       element(head: any) {
-        for (const meta of [...og(person), ...twitter(person)]) {
-          head.prepend(`\n  ${meta}`, html);
-        }
         head.append(
           `
+          <meta name="description" content="${description ? description : ""}" />
+          <meta name="generator" content="${siteName}" />
+          <meta name="semanticcv:theme" content="${theme.id}" />
+          ${og(person).join("\n")}
+          ${twitter(person).join("\n")}
           <style type="text/css">
           .scv-footer { text-align:center; font-size: .9rem; opacity: .5; } 
           .scv-footer a { text-decoration: none; }
@@ -67,8 +70,21 @@ export async function renderHTML(options: {
     })
     .on(`head script[type="application/ld+json"]`, {
       element(script: any) {
-        script.before(`<!-- Analysis results: ${analysisResults} -->`, html);
-        script.replace(`<script type="application/ld+json">${json}</script>`, html);
+        script.before(`\n<!-- Analysis results: ${analysisResults} -->`, html);
+        script.replace(`\n<script type="application/ld+json">${json}</script>`, html);
+        script.after(
+          `\n<script type="application/ld+json">${JSON.stringify({
+            ["@context"]: "https://schema.org",
+            ["@type"]: "CreativeWork",
+            isBasedOn: {
+              ["@type"]: "SoftwareApplication",
+              name: siteName,
+              description: "A developer friendly tool for expressing your CV as structured data.",
+              url: "https://semantic.cv"
+            }
+          })}</script>`,
+          html
+        );
       }
     })
     .on(`head style`, {
@@ -78,7 +94,7 @@ export async function renderHTML(options: {
     })
     .on(`title`, {
       element(title: any) {
-        title.replace(`<title>${person.name} - Semantic CV</title>`, html);
+        title.replace(`<title>${pagetitle(person)}</title>`, html);
       }
     })
     .on(`body`, {
@@ -124,31 +140,45 @@ export default renderHTML;
 
 const html = { html: true };
 
+const pagetitle = (person: any) => {
+  const { name, jobTitle } = person;
+  return `${name ?? ""}${jobTitle ? ` - ${jobTitle}` : ""} - ${siteName}`;
+};
+
 const og = (person: any) => {
+  const { name, description, url, image } = person;
   const meta = [
-    `<meta property="og:site_name" content="${person.name}" />`,
+    `<meta property="og:title" content="${pagetitle(person)}" />`,
+    `<meta property="og:description" content="${description}" />`,
+    `<meta property="og:site_name" content="${siteName}" />`,
     `<meta property="og:type" content="website" />`
   ];
-  if (person.url) {
-    meta.push(`<meta property="og:url" content="${person.url}" />`);
+
+  if (url) {
+    meta.push(`<meta property="og:url" content="${url}" />`);
   }
-  if (person.image) {
-    meta.push(`<meta property="og:image" content="${person.image}" />`);
-    meta.push(`<meta property="og:image:alt" content="${person.name}" />`);
+  if (image) {
+    meta.push(`<meta property="og:image" content="${image}" />`);
+    meta.push(`<meta property="og:image:alt" content="${name}" />`);
   }
   return meta;
 };
 
 const twitter = (person: any) => {
+  const { name, description, url, image } = person;
   const meta = new Array<string>();
-  if (person.image) {
+  if (image) {
     meta.push(`<meta name="twitter.card" content="summary_large_image" />`);
-    meta.push(`<meta property="twitter:image" content="${person.image}" />`);
-    meta.push(`<meta name="twitter:image:alt" content="${person.name}" />`);
+    meta.push(`<meta property="twitter:image" content="${image}" />`);
+    meta.push(`<meta name="twitter:image:alt" content="${name}" />`);
   } else {
     meta.push(`<meta name="twitter.card" content="summary" />`);
   }
-  meta.push(`<meta property="twitter:title" content="${person.name}" />`);
+  if (url) {
+    meta.push(`<meta property="twitter:url" content="${url}" />`);
+  }
+  meta.push(`<meta property="twitter:title" content="${pagetitle(person)}" />`);
+  meta.push(`<meta property="twitter:description" content="${description}" />`);
   return meta;
 };
 
