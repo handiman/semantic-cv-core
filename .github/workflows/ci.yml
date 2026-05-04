@@ -1,0 +1,20 @@
+name: CI/CD
+on:
+  workflow_dispatch:
+  push:
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_COLOR: 1
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: ls
+      - run: node -v
+      - run: npm install
+      - run: npm run test
+      - uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: test-results.xml
