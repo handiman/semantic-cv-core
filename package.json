@@ -20,7 +20,7 @@
     "clean": "rimraf dist",
     "watch": "npm run build && jsonld-cv watch",
     "build": "npm run clean && tsc --project tsconfig.json",
-    "test": "npm run clean && npm run build && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml \"./**/*.test.js\" && npm run test:results",
+    "test": "npm run clean && npm run build && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml \"./test/**/*.test.js\" && npm run test:results",
     "test:results": "xunit-viewer -r test-results.xml -o test-results.html"
   },
   "devDependencies": {
