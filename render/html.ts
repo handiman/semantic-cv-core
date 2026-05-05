@@ -53,11 +53,6 @@ export async function renderHTML(options: {
           <meta name="semanticcv:theme" content="${theme.id}" />
           ${og(person).join("\n")}
           ${twitter(person).join("\n")}
-          <style type="text/css">
-          .scv-footer { text-align:center; font-size: .9rem; opacity: .5; } 
-          .scv-footer a { text-decoration: none; }
-          .scv-footer a:hover { text-decoration: underline; }
-          </style>
           `,
           html
         );
