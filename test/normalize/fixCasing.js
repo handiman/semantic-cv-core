@@ -7,7 +7,7 @@ export default function () {
     for (const validKey of [
       "@context",
       "@type",
-      "@theme",
+      "theme",
       "name",
       "description",
       "jobTitle",
