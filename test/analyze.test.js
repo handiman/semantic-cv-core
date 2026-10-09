@@ -14,7 +14,7 @@ import skills from "./analyze/skills.js";
 import url from "./analyze/url.js";
 import image from "./analyze/image.js";
 import email from "./analyze/email.js";
-import { analyzeFile, analyzeDirectory } from "#core/analyze.js";
+import { analyzeFile, analyzeDirectory } from "#core/analyzeFiles.js";
 
 const readAll = async (reader) => {
   let result = "";
