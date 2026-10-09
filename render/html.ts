@@ -1,5 +1,6 @@
 import analyzer from "../analyze.js";
 import { commentSafe, escapeForHtml, escapeHtml, jsonForScript } from "./escape.js";
+import { HTMLTransformer } from "../transform.js";
 const siteName = "Semantic CV";
 
 /**
@@ -212,16 +213,6 @@ const stripVocab = (person: any) => {
 };
 
 const analyze = (json: string) => cleananalysisResults(analyzer(json));
-
-type HTMLTransformer = {
-  transform(html: string): Promise<string>;
-  on(
-    selector: string,
-    hooks: {
-      element: (el: any) => void;
-    }
-  ): HTMLTransformer;
-};
 
 type Theme = {
   id: string;
