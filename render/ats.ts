@@ -1,13 +1,12 @@
-import pipe from "../pipe.js";
 import normalize from "../normalize.js";
 
 /**
  * Render an ATS‑friendly plain‑text résumé.
  *
- * This function streams a deterministic sequence of text fragments
- * describing the Person object in a machine‑readable format. It uses
- * the same normalization pipeline as the HTML renderer, but writes
- * directly to a WritableStream instead of producing markup.
+ * The Person is normalized and formatted by `formatATS`, then written to
+ * `writable` in one go. The returned Promise settles once the text has been
+ * written (and the stream closed, when `closeStream` is set), so write
+ * errors reach the caller instead of being lost.
  *
  * The output is intentionally minimal:
  *   - no HTML
@@ -15,7 +14,7 @@ import normalize from "../normalize.js";
  *   - no layout constructs
  *   - one field per line in a predictable order
  *
- * @param person Normalized schema.org/Person object.
+ * @param person schema.org/Person object (normalized here if it isn't already).
  * @param writable WritableStream that receives the plain‑text output.
  * @param closeStream Whether to close the stream inside the method (for Node) or if the caller should do it (Worker)
  */
@@ -25,173 +24,112 @@ export async function renderATS(
   closeStream: boolean = false
 ) {
   const writer = writable.getWriter();
-  pipe(
-    normalize,
-    name(writer),
-    jobTitle(writer),
-    workLocation(writer),
-    email(writer),
-    telephone(writer),
-    url(writer),
-    sameAs(writer),
-    description(writer),
-    skills(writer),
-    worksFor(writer),
-    alumniOf(writer),
-    knowsLanguage(writer),
-    hasCertification(writer),
-    projects(writer)
-  )(person);
-  if (closeStream) {
-    writer.close();
+  try {
+    await writer.write(formatATS(person));
+    if (closeStream) {
+      await writer.close();
+    }
+  } finally {
+    writer.releaseLock();
   }
 }
 
 export default renderATS;
 
-const initCaps = (s: string) => {
-  if (s.length) {
-    return `${s[0].toUpperCase()}${s.substring(1)}`;
-  }
-  return s;
-};
+/**
+ * Format a Person as ATS‑friendly plain text.
+ *
+ * Sections are separated by a blank line and only rendered when they have
+ * content. Pure: no I/O, so it can be tested directly.
+ */
+export function formatATS(person: any): string {
+  const normalized = normalize(person);
+  const sections = [
+    header(normalized),
+    summary(normalized),
+    skills(normalized),
+    roles("Professional Experience", organizations(normalized)),
+    roles("Education", normalized.alumniOf),
+    list("Languages", normalized.knowsLanguage),
+    list(
+      "Certifications",
+      (normalized.hasCertification ?? []).map((cert: any) => cert?.name)
+    ),
+    roles("Projects", projects(normalized))
+  ].filter((section) => section.length > 0);
+
+  return sections.map((lines) => lines.join("\n")).join("\n\n") + "\n";
+}
+
+const initCaps = (s: string) => (s.length ? `${s[0].toUpperCase()}${s.substring(1)}` : s);
 
 const toHost = (url: string) => {
   const host = url.substring(url.indexOf("://") + 3).replace("www.", "");
   return host.split(".")[0];
 };
 
-const name = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { name } = person;
-  writer.write(name ? `${name}\n` : "");
-  return person;
+const header = (person: any): Array<string> => {
+  const { name, jobTitle, workLocation, email, telephone, url, sameAs } = person;
+  return [
+    name,
+    jobTitle,
+    workLocation,
+    email ? `Email: ${email}` : undefined,
+    telephone ? `Phone: ${telephone}` : undefined,
+    url ? `URL: ${url}` : undefined,
+    ...(sameAs ?? []).map((link: string) => `${initCaps(toHost(link))}: ${link}`)
+  ].filter(Boolean);
 };
 
-const jobTitle = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { jobTitle } = person;
-  writer.write(jobTitle ? `${jobTitle}\n` : "");
-  return person;
-};
+const summary = (person: any): Array<string> =>
+  person.description ? ["Summary", person.description] : [];
 
-const workLocation = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { workLocation } = person;
-  writer.write(workLocation ? `${workLocation}\n` : "");
-  return person;
-};
-
-const email = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { email } = person;
-  writer.write(email ? `Email: ${email}\n` : "");
-  return person;
-};
-
-const telephone = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { telephone } = person;
-  writer.write(telephone ? `Phone: ${telephone}\n` : "");
-  return person;
-};
-
-const url = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { url } = person;
-  writer.write(url ? `URL: ${url}\n` : "");
-  return person;
-};
-
-const sameAs = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { sameAs } = person;
-  (sameAs ?? []).map((url: string) => writer.write(`${initCaps(toHost(url))}: ${url}\n`));
-  return person;
-};
-
-const description = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { description } = person;
-  if (description) {
-    writer.write(`\nSummary\n${description}\n`);
-  }
-  return person;
-};
-
-const skills = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { skills, knowsAbout } = person;
-  if ((skills && skills.length > 0) || (knowsAbout && knowsAbout.length > 0)) {
-    writer.write(`\nSkills\n${[...skills, knowsAbout].sort().join(", ")}\n`);
-  }
-  return person;
-};
-
-const role = (writer: WritableStreamDefaultWriter) => (role: any) => {
-  if (role !== undefined) {
-    const { roleName, startDate, endDate, description } = role;
-    const { worksFor, alumniOf } = role;
-    const { name, location } = worksFor ?? alumniOf ?? {};
-    writer.write(`${name ?? ""}${location ? `, ${location}` : ""}\n`);
-    if (roleName || startDate || endDate) {
-      writer.write(
-        `${[roleName, startDate, endDate].filter((item) => item !== undefined).join(" - ")}\n`
-      );
-    }
-    if (description) {
-      const lines = description.indexOf("\n") > -1 ? description.split("\n") : [description];
-      for (const line of lines) {
-        const bullet = line.startsWith("-") ? "" : "- ";
-        writer.write(`${bullet} ${line}`);
-      }
-    }
-    writer.write("\n\n");
-  }
-  return role;
-};
-
-const worksFor = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { worksFor } = person;
-  const filtered = (worksFor ?? []).filter(
-    (item: any) => item.worksFor["@type"] === "Organization"
+/**
+ * Skills and knowsAbout merged into one sorted, de-duplicated line.
+ */
+const skills = (person: any): Array<string> => {
+  const all = [...(person.skills ?? []), ...(person.knowsAbout ?? [])].filter(
+    (item) => "string" === typeof item && item.trim().length > 0
   );
-
-  if (filtered.length > 0) {
-    writer.write(`\nProfessional Experience\n`);
-    filtered.map(pipe(role(writer)));
-  }
-
-  return person;
+  const unique = [...new Set(all.map((item: string) => item.trim()))].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" })
+  );
+  return unique.length ? ["Skills", unique.join(", ")] : [];
 };
 
-const alumniOf = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { alumniOf } = person;
-  if (alumniOf && alumniOf.length > 0) {
-    writer.write(`\nEducation\n`);
-    alumniOf.map(pipe(role(writer)));
-  }
-
-  return person;
+const list = (heading: string, items: Array<any> | undefined): Array<string> => {
+  const values = (items ?? []).filter(Boolean);
+  return values.length ? [heading, ...values.map((item) => `- ${item}`)] : [];
 };
 
-const projects = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { worksFor } = person;
-  const filtered = (worksFor ?? []).filter((item: any) => item.worksFor["@type"] === "Project");
+const organizations = (person: any) =>
+  (person.worksFor ?? []).filter((item: any) => item?.worksFor?.["@type"] === "Organization");
 
-  if (filtered.length > 0) {
-    writer.write(`\nProjects\n`);
-    filtered.map(pipe(role(writer)));
+const projects = (person: any) =>
+  (person.worksFor ?? []).filter((item: any) => item?.worksFor?.["@type"] === "Project");
+
+const roles = (heading: string, items: Array<any> | undefined): Array<string> => {
+  const blocks = (items ?? []).filter(Boolean).map(role);
+  if (!blocks.length) {
+    return [];
   }
-
-  return person;
+  // A blank line between roles; the heading sits directly above the first.
+  return [heading, ...blocks.flatMap((block, i) => (i > 0 ? ["", ...block] : block))];
 };
 
-const knowsLanguage = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { knowsLanguage } = person;
-  if (knowsLanguage && knowsLanguage.length > 0) {
-    writer.write(`\nLanguages\n`);
-    writer.write(knowsLanguage.map((language: string) => `- ${language}`).join("\n"));
+const role = (item: any): Array<string> => {
+  const { roleName, startDate, endDate, description } = item;
+  const { name, location } = item.worksFor ?? item.alumniOf ?? {};
+  const lines = [`${name ?? ""}${location ? `, ${location}` : ""}`];
+  const details = [roleName, startDate, endDate].filter(Boolean);
+  if (details.length) {
+    lines.push(details.join(" - "));
   }
-  return person;
-};
-
-const hasCertification = (writer: WritableStreamDefaultWriter) => (person: any) => {
-  const { hasCertification } = person;
-  if (hasCertification && hasCertification.length > 0) {
-    writer.write(`\Certifications\n`);
-    writer.write(hasCertification.map((cert: any) => cert.name).join("\n"));
+  for (const line of String(description ?? "").split("\n")) {
+    const text = line.trim();
+    if (text) {
+      lines.push(text.startsWith("-") ? text : `- ${text}`);
+    }
   }
-  return person;
+  return lines;
 };
