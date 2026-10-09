@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { it, test } from "node:test";
+import { describe, it, test } from "node:test";
 import normalize from "#core/normalize.js";
 
 const rootContext = ["https://schema.org", "https://semantic.cv/context/latest.jsonld"];
@@ -48,7 +48,7 @@ export function removesRedundantContexts() {
     });
     assert.deepStrictEqual(person["@context"], rootContext);
   });
-  it("automatically removes redundant @context from", () => {
+  describe("automatically removes redundant @context from", () => {
     test("worksFor", () => {
       const { worksFor } = normalize({
         worksFor: [
@@ -87,7 +87,7 @@ export function removesRedundantContexts() {
           }
         ]
       });
-      assert.strictEqual(Object.keys(hasCertification).includes("@context"), false);
+      assert.strictEqual(Object.keys(hasCertification[0]).includes("@context"), false);
     });
 
     test("hasCredential", () => {
@@ -98,7 +98,7 @@ export function removesRedundantContexts() {
           }
         ]
       });
-      assert.strictEqual(Object.keys(hasCredential).includes("@context"), false);
+      assert.strictEqual(Object.keys(hasCredential[0]).includes("@context"), false);
     });
 
     test("lifeEvent", () => {
@@ -109,7 +109,7 @@ export function removesRedundantContexts() {
           }
         ]
       });
-      assert.strictEqual(Object.keys(lifeEvent).includes("@context"), false);
+      assert.strictEqual(Object.keys(lifeEvent[0]).includes("@context"), false);
     });
   });
 }

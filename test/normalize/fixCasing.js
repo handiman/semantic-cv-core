@@ -1,9 +1,9 @@
 import assert from "node:assert";
-import { it } from "node:test";
+import { describe, it } from "node:test";
 import { normalize } from "#core/normalize.js";
 
 export default function () {
-  it("automatically corrects invalid property name casing", () => {
+  describe("automatically corrects invalid property name casing", () => {
     for (const validKey of [
       "@context",
       "@type",
@@ -41,10 +41,9 @@ export default function () {
     ]) {
       const invalidKey = validKey.toUpperCase();
       it(`changes ${invalidKey} to ${validKey}`, () => {
-        const something = {
-          [validKey]: "Something"
-        };
-        normalize.casing(something);
+        const something = normalize.casing({
+          [invalidKey]: "Something"
+        });
         assert.strictEqual(something[invalidKey], undefined);
         assert.strictEqual(something[validKey], "Something");
       });
