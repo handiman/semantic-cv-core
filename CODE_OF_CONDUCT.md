@@ -22,7 +22,7 @@ In the project's repositories (issues, pull requests, discussions and commits), 
 
 ## Reporting
 
-If someone's behavior concerns you, email [security@semantic.cv](mailto:security@semantic.cv). Reports are read by the maintainer and handled in confidence.
+If someone's behavior concerns you, email [contributing@semantic.cv](mailto:contributing@semantic.cv). Reports are read by the maintainer and handled in confidence.
 
 The maintainer may edit or remove comments, commits and other contributions that break this code, and may block anyone from the project, temporarily or permanently.
 
