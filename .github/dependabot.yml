@@ -1,0 +1,38 @@
+# Dependabot version updates (security alerts work without this file; this adds
+# scheduled PRs that keep dependencies current so alerts have less to catch).
+# See https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # One PR for all routine bumps instead of one per package.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+      # Security fixes grouped the same way, kept apart from routine bumps.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # Pinned to commit SHAs with the release as a trailing comment
+  # (actions/checkout@<sha> # v6.1.0), so a moved or hijacked tag can't change
+  # what runs; this bumps the SHA and the comment for every new release, as one
+  # grouped PR.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"
