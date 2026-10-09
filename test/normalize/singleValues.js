@@ -85,19 +85,19 @@ export default function () {
           "@type": "Organization",
           name: "Jedi Order"
         });
-        for (const key of ["name", "description", "location"]) {
-          test(key, () => {
-            const { worksFor } = normalize({
-              worksFor: [
-                {
-                  worksFor: { [key]: [key] }
-                }
-              ]
-            });
-            assert.deepStrictEqual(worksFor[0].worksFor[key], key);
-          });
-        }
       });
+      for (const key of ["name", "description", "location"]) {
+        test(`worksFor.${key}`, () => {
+          const { worksFor } = normalize({
+            worksFor: [
+              {
+                worksFor: { [key]: [key] }
+              }
+            ]
+          });
+          assert.deepStrictEqual(worksFor[0].worksFor[key], key);
+        });
+      }
     });
 
     describe("alumniOf", () => {
@@ -128,19 +128,19 @@ export default function () {
           "@type": "EducationalOrganization",
           name: "Jedi Order"
         });
-        for (const key of ["name", "description", "location"]) {
-          test(key, () => {
-            const { alumniOf } = normalize({
-              alumniOf: [
-                {
-                  alumniOf: { [key]: [key] }
-                }
-              ]
-            });
-            assert.deepStrictEqual(alumniOf[0].alumniOf[key], key);
-          });
-        }
       });
+      for (const key of ["name", "description", "location"]) {
+        test(`alumniOf.${key}`, () => {
+          const { alumniOf } = normalize({
+            alumniOf: [
+              {
+                alumniOf: { [key]: [key] }
+              }
+            ]
+          });
+          assert.deepStrictEqual(alumniOf[0].alumniOf[key], key);
+        });
+      }
     });
 
     describe("lifeEvent", () => {
