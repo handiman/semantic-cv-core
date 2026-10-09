@@ -24,7 +24,7 @@
     "test:results": "xunit-viewer -r test-results.xml -o test-results.html"
   },
   "devDependencies": {
-    "@types/node": "25.3.1",
+    "@types/node": "26.6.4",
     "@types/prompts": "^2.4.9",
     "rimraf": "6.1.3",
     "tsx": "4.23.15",
