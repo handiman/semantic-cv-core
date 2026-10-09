@@ -1,4 +1,5 @@
 import analyzer from "../analyze.js";
+import { commentSafe, escapeForHtml, escapeHtml, jsonForScript } from "./escape.js";
 const siteName = "Semantic CV";
 
 /**
@@ -11,6 +12,10 @@ const siteName = "Semantic CV";
  *   4. Injects OpenGraph and Twitter metadata.
  *   5. Uses the provided HTMLTransformer to rewrite a deterministic
  *      HTML skeleton, replacing placeholder nodes with theme output.
+ *
+ * The Person is untrusted input. The theme and the metadata helpers get an
+ * HTML-escaped copy (see escapeForHtml), and the JSON-LD is serialized so it
+ * cannot close its <script> element.
  *
  * The result is a fully‑assembled, self‑contained HTML document that
  * includes:
@@ -36,12 +41,13 @@ export async function renderHTML(options: {
   transformer: HTMLTransformer;
 }): Promise<string> {
   const { person, theme, transformer } = options;
-  const themeHTML = await theme.renderHTML(person);
-  const themeCSS = await theme.renderCSS(person);
-  const themeJS = await theme.renderJS(person);
-  const json = JSON.stringify(stripVocab(person), null, 0);
-  const analysisResults = analyze(json);
-  const { description } = person;
+  const safePerson = escapeForHtml(person);
+  const themeHTML = await theme.renderHTML(safePerson);
+  const themeCSS = await theme.renderCSS(safePerson);
+  const themeJS = await theme.renderJS(safePerson);
+  const json = jsonForScript(stripVocab(person));
+  const analysisResults = commentSafe(analyze(JSON.stringify(stripVocab(person))));
+  const { description } = safePerson;
 
   transformer
     .on(`head`, {
@@ -51,8 +57,8 @@ export async function renderHTML(options: {
           <meta name="description" content="${description ? description : ""}" />
           <meta name="generator" content="${siteName}" />
           <meta name="semanticcv:theme" content="${theme.id}" />
-          ${og(person).join("\n")}
-          ${twitter(person).join("\n")}
+          ${og(safePerson).join("\n")}
+          ${twitter(safePerson).join("\n")}
           `,
           html
         );
@@ -89,7 +95,7 @@ export async function renderHTML(options: {
     })
     .on(`title`, {
       element(title: any) {
-        title.replace(`<title>${pagetitle(person)}</title>`, html);
+        title.replace(`<title>${pagetitle(safePerson)}</title>`, html);
       }
     })
     .on(`body`, {
@@ -137,14 +143,14 @@ const html = { html: true };
 
 const pagetitle = (person: any) => {
   const { name, jobTitle } = person;
-  return `${name ?? ""}${jobTitle ? ` - ${jobTitle}` : ""} - ${siteName}`;
+  return `${name ?? ""}${jobTitle ? ` - ${jobTitle}` : ""} - ${escapeHtml(siteName)}`;
 };
 
 const og = (person: any) => {
   const { name, description, url, image } = person;
   const meta = [
     `<meta property="og:title" content="${pagetitle(person)}" />`,
-    `<meta property="og:description" content="${description}" />`,
+    `<meta property="og:description" content="${description ?? ""}" />`,
     `<meta property="og:site_name" content="${siteName}" />`,
     `<meta property="og:type" content="website" />`
   ];
@@ -173,7 +179,7 @@ const twitter = (person: any) => {
     meta.push(`<meta property="twitter:url" content="${url}" />`);
   }
   meta.push(`<meta property="twitter:title" content="${pagetitle(person)}" />`);
-  meta.push(`<meta property="twitter:description" content="${description}" />`);
+  meta.push(`<meta property="twitter:description" content="${description ?? ""}" />`);
   return meta;
 };
 
