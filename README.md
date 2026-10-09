@@ -18,6 +18,10 @@ These modules form the backbone of the Semanticâ€‘CV ecosystem. Everything elseâ
 - Theme definitions (see [`semantic-cv-themes`][semantic-cv-themes])
 - The hosted site or its deployment configuration
 
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 The core logic is free to use and integrate into your own workflows.
