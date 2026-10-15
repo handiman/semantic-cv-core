@@ -51,21 +51,40 @@ export function formatATS(person: any): string {
     roles("Professional Experience", organizations(normalized)),
     roles("Education", normalized.alumniOf),
     list("Languages", normalized.knowsLanguage),
-    list(
-      "Certifications",
-      (normalized.hasCertification ?? []).map((cert: any) => cert?.name)
-    ),
+    list("Certifications", (normalized.hasCertification ?? []).map(certification)),
     roles("Projects", projects(normalized))
   ].filter((section) => section.length > 0);
 
-  return sections.map((lines) => lines.join("\n")).join("\n\n") + "\n";
+  return plainText(sections.map((lines) => lines.join("\n")).join("\n\n") + "\n");
 }
+
+/**
+ * Replace typographic hyphens and non-breaking spaces with their ASCII
+ * counterparts, so keyword matching sees `full-time`, not `full‑time`.
+ * En and em dashes are real punctuation and are kept.
+ */
+const plainText = (text: string) =>
+  text.replace(/[\u2010\u2011\u2012]/g, "-").replace(/[\u00a0\u2007\u202f]/g, " ");
 
 const initCaps = (s: string) => (s.length ? `${s[0].toUpperCase()}${s.substring(1)}` : s);
 
 const toHost = (url: string) => {
   const host = url.substring(url.indexOf("://") + 3).replace("www.", "");
   return host.split(".")[0];
+};
+
+/** Brand spellings for common profile hosts; anything else is init-capped. */
+const knownSites: Record<string, string> = {
+  github: "GitHub",
+  gitlab: "GitLab",
+  linkedin: "LinkedIn",
+  stackoverflow: "Stack Overflow",
+  youtube: "YouTube"
+};
+
+const siteLabel = (url: string) => {
+  const host = toHost(url);
+  return knownSites[host.toLowerCase()] ?? initCaps(host);
 };
 
 const header = (person: any): Array<string> => {
@@ -77,12 +96,14 @@ const header = (person: any): Array<string> => {
     email ? `Email: ${email}` : undefined,
     telephone ? `Phone: ${telephone}` : undefined,
     url ? `URL: ${url}` : undefined,
-    ...(sameAs ?? []).map((link: string) => `${initCaps(toHost(link))}: ${link}`)
+    ...(sameAs ?? []).map((link: string) => `${siteLabel(link)}: ${link}`)
   ].filter(Boolean);
 };
 
-const summary = (person: any): Array<string> =>
-  person.description ? ["Summary", person.description] : [];
+const summary = (person: any): Array<string> => {
+  const description = String(person.description ?? "").trim();
+  return description ? ["Summary", description] : [];
+};
 
 /**
  * Skills and knowsAbout merged into one sorted, de-duplicated line.
@@ -100,6 +121,19 @@ const skills = (person: any): Array<string> => {
 const list = (heading: string, items: Array<any> | undefined): Array<string> => {
   const values = (items ?? []).filter(Boolean);
   return values.length ? [heading, ...values.map((item) => `- ${item}`)] : [];
+};
+
+/**
+ * "Name (Issuer, Year)", leaving out whichever parts are missing.
+ */
+const certification = (cert: any): string | undefined => {
+  if (!cert?.name) {
+    return undefined;
+  }
+  const issuer = typeof cert.issuedBy === "string" ? cert.issuedBy : cert.issuedBy?.name;
+  const year = cert.validFrom ? String(cert.validFrom).substring(0, 4) : undefined;
+  const details = [issuer, year].filter(Boolean);
+  return details.length ? `${cert.name} (${details.join(", ")})` : cert.name;
 };
 
 const organizations = (person: any) =>
@@ -121,9 +155,15 @@ const role = (item: any): Array<string> => {
   const { roleName, startDate, endDate, description } = item;
   const { name, location } = item.worksFor ?? item.alumniOf ?? {};
   const lines = [`${name ?? ""}${location ? `, ${location}` : ""}`];
-  const details = [roleName, startDate, endDate].filter(Boolean);
-  if (details.length) {
-    lines.push(details.join(" - "));
+  if (roleName) {
+    lines.push(roleName);
+  }
+  // Dates get their own line, so the ISO dates' hyphens can't be confused
+  // with a separator. A role with a start but no end is ongoing.
+  if (startDate) {
+    lines.push(`${startDate} – ${endDate ?? "Present"}`);
+  } else if (endDate) {
+    lines.push(endDate);
   }
   for (const line of String(description ?? "").split("\n")) {
     const text = line.trim();

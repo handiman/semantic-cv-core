@@ -67,6 +67,63 @@ describe("ATS", () => {
     );
   });
 
+  it("puts the role name and dates on separate lines", () => {
+    const text = formatATS(
+      person({
+        worksFor: [role("Organization", { roleName: "IT-Consultant", endDate: "2021-10-10" })]
+      })
+    );
+    assert.match(text, /^Acme\nIT-Consultant\n2020-01-15 – 2021-10-10$/m);
+  });
+
+  it("marks a role without an end date as ongoing", () => {
+    const text = formatATS(person({ worksFor: [role("Organization", {})] }));
+    assert.match(text, /^2020-01-15 – Present$/m);
+  });
+
+  it("trims the summary so no blank lines follow it", () => {
+    const text = formatATS(person({ description: "Hello\n", skills: ["C#"] }));
+    assert.match(text, /^Summary\nHello\n\nSkills$/m);
+  });
+
+  it("replaces non-breaking hyphens and spaces with ASCII", () => {
+    const text = formatATS(person({ description: "full\u2011time\u00a0role" }));
+    assert.match(text, /^full-time role$/m);
+  });
+
+  it("uses brand spellings for known profile sites", () => {
+    const text = formatATS(
+      person({
+        sameAs: [
+          "https://github.com/a",
+          "https://www.linkedin.com/in/b",
+          "https://mastodon.social/@c"
+        ]
+      })
+    );
+    assert.match(text, /^GitHub: https:\/\/github.com\/a$/m);
+    assert.match(text, /^LinkedIn: https:\/\/www.linkedin.com\/in\/b$/m);
+    assert.match(text, /^Mastodon: https:\/\/mastodon.social\/@c$/m);
+  });
+
+  it("includes issuer and year with certifications", () => {
+    const text = formatATS(
+      person({
+        hasCertification: [
+          {
+            "@type": "Certification",
+            name: "AZ-204",
+            issuedBy: "Microsoft",
+            validFrom: "2021-06-24"
+          },
+          { "@type": "Certification", name: "Plain" }
+        ]
+      })
+    );
+    assert.match(text, /^- AZ-204 \(Microsoft, 2021\)$/m);
+    assert.match(text, /^- Plain$/m);
+  });
+
   it("omits empty sections", () => {
     assert.strictEqual(formatATS(person({})), "Test\n");
   });
