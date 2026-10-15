@@ -2,6 +2,10 @@ name: CI/CD
 on:
   workflow_dispatch:
   push:
+# The job only reads the repo; the test report is uploaded as an artifact.
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   FORCE_COLOR: 1
