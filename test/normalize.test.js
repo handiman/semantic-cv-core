@@ -14,6 +14,7 @@ import fixesCasing from "./normalize/fixCasing.js";
 import fixesTheme from "./normalize/fixTheme.js";
 import trimsStrings from "./normalize/trim.js";
 import keepsTheme from "./normalize/keepTheme.js";
+import keywords from "./normalize/keywords.js";
 import sorting from "./normalize/sorting.js";
 import { fixesInvalidContext, removesRedundantContexts, addsMissingContext } from "./normalize/fixContext.js";
 
@@ -28,6 +29,7 @@ describe("Normalize", () => {
   addsMissingContext();
   arrayValues();
   singleValues();
+  keywords();
   sorting();
   describe("internals", () => {
     test("removeUndefined", () => {
