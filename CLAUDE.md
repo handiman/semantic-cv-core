@@ -77,6 +77,8 @@ Run `npm test` before considering work done. CI (`.github/workflows/ci.yml`) run
 - `escape.test.js` and `ats.test.js` cover the renderers. A change to escaping needs a test with a hostile value
   (`<script>`, `javascript:`, a quote that closes an attribute).
 - `test/index.js` locates the package root; the tests use `#core/*` instead of relative paths into `dist/`.
+- Tests are the spec. Write them as readable sentences (`it("keep the order the author gave them")`) so that a doc
+  comment restating what a function does is redundant, and leave such comments out.
 
 ## Working in the CLI repo's submodule
 
