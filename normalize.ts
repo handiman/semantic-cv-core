@@ -232,12 +232,21 @@ export const removeNull = (obj: any) =>
     : Object.fromEntries(Object.entries(obj).filter(([_, value]) => value !== null));
 
 /**
+ * Whether a value carries content: a non-empty string or array, or an
+ * object with at least one key (e.g. `theme: { "@type": "Theme", name }`).
+ */
+const hasContent = (value: any) =>
+  value && "object" === typeof value && !Array.isArray(value)
+    ? Object.keys(value).length > 0
+    : value && value.length > 0;
+
+/**
  * Remove empty values.
  */
 export const removeEmpty = (obj: string | Array<any>) =>
   undefined === obj
     ? obj
-    : Object.fromEntries(Object.entries(obj).filter(([_, value]) => value && value.length > 0));
+    : Object.fromEntries(Object.entries(obj).filter(([_, value]) => hasContent(value)));
 
 /**
  * Full normalization pipeline for Person objects.
