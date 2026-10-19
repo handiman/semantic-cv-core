@@ -124,6 +124,51 @@ describe("ATS", () => {
     assert.match(text, /^- Plain$/m);
   });
 
+  describe("places", () => {
+    const place = (name) => ({ "@type": "Place", name });
+
+    it("prints the name of a Place given as workLocation", () => {
+      const text = formatATS(person({ workLocation: place("Stockholm") }));
+      assert.match(text, /^Test\nStockholm$/m);
+    });
+
+    it("still prints a workLocation given as a string", () => {
+      const text = formatATS(person({ workLocation: "Stockholm" }));
+      assert.match(text, /^Test\nStockholm$/m);
+    });
+
+    it("prints a PostalAddress as workLocation from its parts", () => {
+      const text = formatATS(
+        person({
+          workLocation: {
+            "@type": "PostalAddress",
+            addressLocality: "Stockholm",
+            addressCountry: "SE"
+          }
+        })
+      );
+      assert.match(text, /^Test\nStockholm, SE$/m);
+    });
+
+    it("prints the location of an organization after its name", () => {
+      const worksFor = [
+        {
+          "@type": "Role",
+          roleName: "Developer",
+          startDate: "2020-01-15",
+          worksFor: { "@type": "Organization", name: "Acme", location: place("Malmö") }
+        }
+      ];
+      const text = formatATS(person({ worksFor }));
+      assert.match(text, /^Acme, Malmö$/m);
+    });
+
+    it("never prints [object Object]", () => {
+      const text = formatATS(person({ workLocation: { "@type": "Place" } }));
+      assert.doesNotMatch(text, /\[object Object\]/);
+    });
+  });
+
   it("omits empty sections", () => {
     assert.strictEqual(formatATS(person({})), "Test\n");
   });

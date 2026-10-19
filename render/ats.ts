@@ -87,12 +87,36 @@ const siteLabel = (url: string) => {
   return knownSites[host.toLowerCase()] ?? initCaps(host);
 };
 
+/**
+ * Text for a place: a plain string as it is, otherwise the name of a schema.org
+ * Place, otherwise the parts of a PostalAddress. Undefined when there is nothing to print.
+ */
+const placeText = (place: any): string | undefined => {
+  if ("string" === typeof place) {
+    return place.trim() || undefined;
+  }
+  if (!place || "object" !== typeof place) {
+    return undefined;
+  }
+  if ("string" === typeof place.name && place.name.trim()) {
+    return place.name.trim();
+  }
+  const parts = [
+    place.streetAddress,
+    place.postalCode,
+    place.addressLocality,
+    place.addressRegion,
+    place.addressCountry
+  ].filter((part) => "string" === typeof part && part.trim());
+  return parts.length ? parts.map((part) => part.trim()).join(", ") : undefined;
+};
+
 const header = (person: any): Array<string> => {
   const { name, jobTitle, workLocation, email, telephone, url, sameAs } = person;
   return [
     name,
     jobTitle,
-    workLocation,
+    placeText(workLocation),
     email ? `Email: ${email}` : undefined,
     telephone ? `Phone: ${telephone}` : undefined,
     url ? `URL: ${url}` : undefined,
@@ -154,7 +178,8 @@ const roles = (heading: string, items: Array<any> | undefined): Array<string> =>
 const role = (item: any): Array<string> => {
   const { roleName, startDate, endDate, description } = item;
   const { name, location } = item.worksFor ?? item.alumniOf ?? {};
-  const lines = [`${name ?? ""}${location ? `, ${location}` : ""}`];
+  const place = placeText(location);
+  const lines = [`${name ?? ""}${place ? `, ${place}` : ""}`];
   if (roleName) {
     lines.push(roleName);
   }
