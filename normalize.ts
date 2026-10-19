@@ -86,6 +86,24 @@ function fixCasing<T>(value: T): T {
   return value;
 }
 
+/**
+ * Trim surrounding whitespace from every string in a value, at any depth.
+ * Returns a copy; the input is not modified. A string that is only whitespace
+ * becomes empty and is then dropped by `removeEmpty`.
+ */
+const trimStrings = (value: any): any => {
+  if ("string" === typeof value) {
+    return value.trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(trimStrings);
+  }
+  if (value && "object" === typeof value) {
+    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, trimStrings(val)]));
+  }
+  return value;
+};
+
 const fixTheme = (person: any) => {
   if (person["@theme"]) {
     const result = {
@@ -254,6 +272,7 @@ export const removeEmpty = (obj: string | Array<any>) =>
 export const normalize = {
   casing: fixCasing,
   person: pipe(
+    trimStrings,
     fixCasing,
     fixTheme,
     singleValues([

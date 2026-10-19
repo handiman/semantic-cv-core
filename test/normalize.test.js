@@ -12,6 +12,7 @@ import singleValues from "./normalize/singleValues.js";
 import fixesType from "./normalize/fixType.js";
 import fixesCasing from "./normalize/fixCasing.js";
 import fixesTheme from "./normalize/fixTheme.js";
+import trimsStrings from "./normalize/trim.js";
 import keepsTheme from "./normalize/keepTheme.js";
 import sorting from "./normalize/sorting.js";
 import { fixesInvalidContext, removesRedundantContexts, addsMissingContext } from "./normalize/fixContext.js";
@@ -21,6 +22,7 @@ describe("Normalize", () => {
   fixesType();
   fixesInvalidContext();
   fixesTheme();
+  trimsStrings();
   keepsTheme();
   removesRedundantContexts();
   addsMissingContext();
