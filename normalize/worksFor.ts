@@ -8,6 +8,7 @@ import {
   toSingle
 } from "../normalize.js";
 import pipe from "../pipe.js";
+import normalizeKeywords from "./keywords.js";
 import sort, { sortFields } from "../sort.js";
 
 /**
@@ -26,6 +27,7 @@ import sort, { sortFields } from "../sort.js";
  * The inner object has:
  *   • no \@context
  *   • normalized scalar fields (name, description, location)
+ *   • `keywords` as a list of DefinedTerm objects (see keywords.ts)
  *   • \@type set to "Organization" unless already a Project
  *
  * The final list is sorted by `endDate` descending so the most recent
@@ -47,6 +49,7 @@ const wrapperPipe = (initial: any) => {
   const innerPipe = pipe(
     removeContext,
     removeUndefined,
+    normalizeKeywords,
     (item: any): any => ("Project" === item["@type"] ? item : setType("Organization")(item)),
     removeNull,
     removeEmpty,

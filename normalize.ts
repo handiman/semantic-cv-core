@@ -53,6 +53,7 @@ function fixCasing<T>(value: T): T {
     "hasCredential",
     "knowsAbout",
     "skills",
+    "keywords",
     "knowsLanguage",
     "location",
     "member",
