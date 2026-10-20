@@ -17,6 +17,7 @@ import sort, { sortFields } from "../sort.js";
  * Each entry is transformed into a Role wrapper with:
  *   • \@type: "Role"
  *   • normalized scalar fields (roleName, description, startDate, endDate, worksFor)
+ *   • `keywords` as a list of DefinedTerm objects (see keywords.ts)
  *   • no @context, null, undefined, or empty values
  *   • deterministic key ordering
  *
@@ -27,7 +28,6 @@ import sort, { sortFields } from "../sort.js";
  * The inner object has:
  *   • no \@context
  *   • normalized scalar fields (name, description, location)
- *   • `keywords` as a list of DefinedTerm objects (see keywords.ts)
  *   • \@type set to "Organization" unless already a Project
  *
  * The final list is sorted by `endDate` descending so the most recent
@@ -40,6 +40,7 @@ const wrapperPipe = (initial: any) => {
     setType("Role"),
     singleValues(["roleName", "description", "startDate", "endDate", "worksFor"]),
     removeContext,
+    normalizeKeywords,
     removeUndefined,
     removeNull,
     removeEmpty,
@@ -49,7 +50,6 @@ const wrapperPipe = (initial: any) => {
   const innerPipe = pipe(
     removeContext,
     removeUndefined,
-    normalizeKeywords,
     (item: any): any => ("Project" === item["@type"] ? item : setType("Organization")(item)),
     removeNull,
     removeEmpty,

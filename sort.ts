@@ -27,7 +27,15 @@ const PERSON_PRIORITY = [
 ];
 
 // Work Role priority
-const ROLE_PRIORITY = ["@type", "roleName", "description", "startDate", "endDate", "worksFor"];
+const ROLE_PRIORITY = [
+  "@type",
+  "roleName",
+  "description",
+  "startDate",
+  "endDate",
+  "worksFor",
+  "keywords"
+];
 
 // Education Role priority (alumniOf)
 const ALUMNI_PRIORITY = ["@type", "alumniOf", "description", "startDate", "endDate"];
