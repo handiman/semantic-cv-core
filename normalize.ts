@@ -132,6 +132,12 @@ export const toArray = (value: any) => {
 };
 
 /**
+ * A plain string where an object is expected is taken as the object's name, so that
+ * `"alumniOf": "KTH"` keeps "KTH" instead of being spread into one key per character.
+ */
+export const named = (value: any) => ("string" === typeof value ? { name: value } : value);
+
+/**
  * Convert an array to a single value (first element).
  */
 export const toSingle = (value: any) => {
@@ -139,11 +145,13 @@ export const toSingle = (value: any) => {
     return value;
   }
 
-  if (Array.isArray(value)) {
-    return value[0];
+  // Nested arrays are unwrapped all the way, so that one pass gives a single value.
+  let single = value;
+  while (Array.isArray(single)) {
+    single = single[0];
   }
 
-  return value;
+  return single;
 };
 
 /**

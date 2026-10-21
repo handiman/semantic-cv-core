@@ -5,6 +5,7 @@ import {
   removeUndefined,
   setType,
   singleValues,
+  named
 } from "../normalize.js";
 import pipe from "../pipe.js";
 import sort, { sortFields } from "../sort.js";
@@ -35,6 +36,7 @@ export function normalizeHasCredential(person: any) {
           .dateDescending("datePublished")(hasCredential ?? [])
           .map(
             pipe(
+              named,
               setType("EducationalOccupationalCredential"),
               singleValues(["name", "description", "datePublished", "expires", "image"]),
               removeContext,

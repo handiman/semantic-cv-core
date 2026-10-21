@@ -5,6 +5,7 @@ import {
   removeUndefined,
   setType,
   singleValues,
+  named
 } from "../normalize.js";
 import pipe from "../pipe.js";
 import sort, { sortFields } from "../sort.js";
@@ -36,6 +37,7 @@ export function normalizeHasCertification(person: any) {
           .dateDescending("validFrom")(hasCertification ?? [])
           .map(
             pipe(
+              named,
               setType("Certification"),
               singleValues([
                 "name",

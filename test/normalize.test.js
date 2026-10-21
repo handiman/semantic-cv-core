@@ -9,6 +9,7 @@ import {
 } from "#core/normalize.js";
 import arrayValues from "./normalize/arrayValues.js";
 import singleValues from "./normalize/singleValues.js";
+import namedStrings from "./normalize/namedStrings.js";
 import fixesType from "./normalize/fixType.js";
 import fixesCasing from "./normalize/fixCasing.js";
 import fixesTheme from "./normalize/fixTheme.js";
@@ -30,6 +31,7 @@ describe("Normalize", () => {
   addsMissingContext();
   arrayValues();
   singleValues();
+  namedStrings();
   keywords();
   sorting();
   dropsNumbersAndBooleans();

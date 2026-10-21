@@ -5,7 +5,8 @@ import {
   removeUndefined,
   setType,
   singleValues,
-  toSingle
+  toSingle,
+  named
 } from "../normalize.js";
 import pipe from "../pipe.js";
 import normalizeKeywords from "./keywords.js";
@@ -35,7 +36,9 @@ import sort, { sortFields } from "../sort.js";
  *
  * If the Person has no `worksFor` field, the object is returned unchanged.
  */
-const wrapperPipe = (initial: any) => {
+const wrapperPipe = (item: any) => {
+  // A string is the name of the organization: "Acme" is short for { "worksFor": { "name": "Acme" } }.
+  const initial = "string" === typeof item ? { worksFor: item } : item;
   const normalized = pipe(
     setType("Role"),
     singleValues(["roleName", "description", "startDate", "endDate", "worksFor"]),
@@ -57,7 +60,7 @@ const wrapperPipe = (initial: any) => {
   );
   return {
     ...normalized,
-    worksFor: innerPipe(toSingle(initial.worksFor ?? {}))
+    worksFor: innerPipe(named(toSingle(initial.worksFor ?? {})))
   };
 };
 
