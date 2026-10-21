@@ -101,6 +101,28 @@ describe("Analyze", () => {
     });
   });
 
+  describe("File name in the output", () => {
+    test("is relative to the working directory, without a leading slash", async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "myapp-"));
+      const cwd = process.cwd();
+      try {
+        createValidFile(path.join(dir, "cv.json"));
+        process.chdir(dir);
+        const { writable, readable } = new TransformStream();
+        const writer = writable.getWriter();
+
+        await analyzeFile(path.join(dir, "cv.json"), writer);
+        writer.close();
+
+        const output = await readAll(readable.getReader());
+        assert.ok(output.startsWith("cv.json"), output);
+      } finally {
+        process.chdir(cwd);
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
   describe("Error count", () => {
     test("is 0 for a valid file", async () => {
       await withTempDir(async (dir) => {

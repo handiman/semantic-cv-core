@@ -36,7 +36,7 @@ function findJsonLdFiles(dir: string): string[] {
  */
 export async function analyzeFile(filename: string, log: any = process.stdout): Promise<number> {
   log["writeLine"] = (s: string) => log.write(`${s}\n`);
-  const prettyFileName = filename.replace(process.cwd(), "").replace(/\\/g, "/");
+  const prettyFileName = path.relative(process.cwd(), filename).replace(/\\/g, "/");
   if (!fs.existsSync(filename)) {
     log.writeLine(`${prettyFileName}\n  File was deleted or moved`);
     return 0;
