@@ -7,6 +7,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      # Wait before proposing a brand-new release, so a compromised one is caught first.
+      default-days: 7
     commit-message:
       prefix: chore
       include: scope
@@ -21,3 +24,11 @@ updates:
         applies-to: security-updates
         patterns:
           - "*"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
