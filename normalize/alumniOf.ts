@@ -5,7 +5,8 @@ import {
   removeUndefined,
   setType,
   singleValues,
-  toSingle
+  toSingle,
+  named
 } from "../normalize.js";
 import pipe from "../pipe.js";
 import sort, { sortFields } from "../sort.js";
@@ -26,7 +27,9 @@ import sort, { sortFields } from "../sort.js";
  * The final list is sorted by `endDate` descending to produce a stable,
  * chronological education history.
  */
-const wrapperPipe = (initial: any) => {
+const wrapperPipe = (item: any) => {
+  // A string is the name of the organization: "KTH" is short for { "alumniOf": { "name": "KTH" } }.
+  const initial = "string" === typeof item ? { alumniOf: item } : item;
   const normalized = pipe(
     setType("Role"),
     singleValues(["roleName", "description", "startDate", "endDate", "alumniOf"]),
@@ -47,7 +50,7 @@ const wrapperPipe = (initial: any) => {
   );
   return {
     ...normalized,
-    alumniOf: innerPipe(toSingle(initial.alumniOf ?? {}))
+    alumniOf: innerPipe(named(toSingle(initial.alumniOf ?? {})))
   };
 };
 

@@ -5,6 +5,7 @@ import {
   removeUndefined,
   setType,
   singleValues,
+  named
 } from "../normalize.js";
 import pipe from "../pipe.js";
 import sort, { sortFields } from "../sort.js";
@@ -33,6 +34,7 @@ export function normalizeLifeEvent(person: any) {
         lifeEvent: sort.dateDescending("startDate")(
           (lifeEvent ?? []).map(
             pipe(
+              named,
               setType("Event"),
               singleValues(["name", "description"]),
               removeContext,
