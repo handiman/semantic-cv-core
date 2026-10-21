@@ -31,25 +31,27 @@ function findJsonLdFiles(dir: string): string[] {
 
 /**
  * Analyze a single *.cv.json file and print results to the provided log stream.
+ *
+ * @returns The number of errors found (warnings are not counted).
  */
-export async function analyzeFile(filename: string, log: any = process.stdout) {
+export async function analyzeFile(filename: string, log: any = process.stdout): Promise<number> {
   log["writeLine"] = (s: string) => log.write(`${s}\n`);
   const prettyFileName = filename.replace(process.cwd(), "").replace(/\\/g, "/");
   if (!fs.existsSync(filename)) {
     log.writeLine(`${prettyFileName}\n  File was deleted or moved`);
-    return;
+    return 0;
   }
   log.writeLine(prettyFileName);
   const raw = await fs.promises.readFile(filename, "utf8");
   const analysisResult = analyze(raw);
 
-  let hasErrors: boolean = false;
+  let errorCount = 0;
   let hasWarnings: boolean = false;
   for (const [key, value] of Object.entries(analysisResult)) {
     if (value.errors.length > 0 || value.warnings.length > 0) {
       log.writeLine(`  "${key}":`);
       if (value.errors.length > 0) {
-        hasErrors = true;
+        errorCount += value.errors.length;
         for (const error of value.errors) {
           log.writeLine(`    - ${error}`);
         }
@@ -63,16 +65,21 @@ export async function analyzeFile(filename: string, log: any = process.stdout) {
     }
   }
 
-  if (!hasErrors && !hasWarnings) {
+  if (errorCount === 0 && !hasWarnings) {
     log.writeLine("  ✔");
   }
+  return errorCount;
 }
 
 /**
  * Analyze all *.cv.json files in a directory tree.
+ *
+ * @returns The total number of errors found (warnings are not counted).
  */
-export async function analyzeDirectory(dir: string, log: any = process.stdout) {
+export async function analyzeDirectory(dir: string, log: any = process.stdout): Promise<number> {
+  let errorCount = 0;
   for (const file of findJsonLdFiles(dir)) {
-    await analyzeFile(file, log);
+    errorCount += await analyzeFile(file, log);
   }
+  return errorCount;
 }
