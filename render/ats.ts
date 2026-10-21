@@ -198,7 +198,7 @@ const role = (item: any): Array<string> => {
   }
   const keywords = (item.keywords ?? []).map((keyword: any) => keyword?.name).filter(Boolean);
   if (keywords.length) {
-    lines.push(`Keywords: ${keywords.join(", ")}`);
+    lines.push(`Skills: ${keywords.join(", ")}`);
   }
   return lines;
 };

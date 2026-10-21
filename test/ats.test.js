@@ -51,36 +51,36 @@ describe("ATS", () => {
           ]
         })
       );
-      assert.match(text, /^- Built things\nKeywords: TypeScript, Azure Service Bus$/m);
+      assert.match(text, /^- Built things\nSkills: TypeScript, Azure Service Bus$/m);
     });
 
     it("keep the order the author gave them", () => {
       const text = formatATS(
         person({ worksFor: [role("Organization", { keywords: [term("Zig"), term("Ada")] })] })
       );
-      assert.match(text, /^Keywords: Zig, Ada$/m);
+      assert.match(text, /^Skills: Zig, Ada$/m);
     });
 
     it("are printed for a project too", () => {
       const text = formatATS(person({ worksFor: [role("Project", { keywords: [term("Rust")] })] }));
-      assert.match(text, /^Projects\nAcme\nDeveloper\n2020-01-15 – Present\nKeywords: Rust$/m);
+      assert.match(text, /^Projects\nAcme\nDeveloper\n2020-01-15 – Present\nSkills: Rust$/m);
     });
 
     it("are printed from a plain string, since normalization makes it a DefinedTerm", () => {
       const text = formatATS(person({ worksFor: [role("Organization", { keywords: "Rust" })] }));
-      assert.match(text, /^Keywords: Rust$/m);
+      assert.match(text, /^Skills: Rust$/m);
     });
 
     it("leave out the line when a role has none", () => {
       const text = formatATS(person({ worksFor: [role("Organization", {})] }));
-      assert.doesNotMatch(text, /Keywords/);
+      assert.doesNotMatch(text, /Skills:/);
     });
 
     it("leave out the line when none of them has a name", () => {
       const text = formatATS(
         person({ worksFor: [role("Organization", { keywords: [{ "@type": "DefinedTerm" }] })] })
       );
-      assert.doesNotMatch(text, /Keywords/);
+      assert.doesNotMatch(text, /Skills:/);
     });
   });
 
