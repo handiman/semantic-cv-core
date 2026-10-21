@@ -8,7 +8,7 @@ const role = (fields) => ({
   ...fields
 });
 
-export default () =>
+export default () => {
   describe("drops a property value that is a number or a boolean", () => {
     for (const value of [46123, 0, 1.5, true, false]) {
       it(`${value} on the person`, () => {
@@ -60,3 +60,17 @@ export default () =>
       });
     });
   });
+
+  describe("keeps a number or a boolean inside a list", () => {
+    it("in a list of text, for analyze to report", () => {
+      const person = normalize({ name: "Yoda", skills: ["Rust", 1, true, 0, false] });
+      assert.deepStrictEqual(person.skills, ["Rust", 1, true, 0, false]);
+    });
+
+    it("in knowsAbout and knowsLanguage too", () => {
+      const person = normalize({ name: "Yoda", knowsAbout: ["Force", 7], knowsLanguage: [true] });
+      assert.deepStrictEqual(person.knowsAbout, ["Force", 7]);
+      assert.deepStrictEqual(person.knowsLanguage, [true]);
+    });
+  });
+};
