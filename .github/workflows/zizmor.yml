@@ -8,8 +8,28 @@ on:
 permissions: {}
 
 jobs:
+  # The gate for pull requests, required as a status check in the branch ruleset. It fails on a
+  # finding of high severity. A status check belongs to the commit it ran on, so the merge never
+  # waits for results to be matched to the pull request, as it did with code scanning.
   zizmor:
     name: zizmor
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        with:
+          advanced-security: false
+          min-severity: high
+
+  # All findings on master go to code scanning, so they show under Security.
+  upload:
+    name: zizmor (code scanning)
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
