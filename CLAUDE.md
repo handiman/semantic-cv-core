@@ -66,7 +66,7 @@ It has no CLI commands and no themes — those live in the CLI repo and in `sema
 
 - `npm ci` – install
 - `npm run build` – clean and compile with `tsc`
-- `npm test` – build, run all `*.test.js`, then render the HTML report (needs `xunit-viewer` globally)
+- `npm test` – build, run all `*.test.js`, then render the HTML report
 
 Run `npm test` before considering work done. CI (`.github/workflows/ci.yml`) runs the same on every push.
 
