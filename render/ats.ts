@@ -196,5 +196,9 @@ const role = (item: any): Array<string> => {
       lines.push(text.startsWith("-") ? text : `- ${text}`);
     }
   }
+  const keywords = (item.keywords ?? []).map((keyword: any) => keyword?.name).filter(Boolean);
+  if (keywords.length) {
+    lines.push(`Keywords: ${keywords.join(", ")}`);
+  }
   return lines;
 };
