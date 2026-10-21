@@ -48,7 +48,7 @@ export function formatATS(person: any): string {
     header(normalized),
     summary(normalized),
     skills(normalized),
-    roles("Professional Experience", organizations(normalized)),
+    roles("Work Experience", organizations(normalized)),
     roles("Education", normalized.alumniOf),
     list("Languages", normalized.knowsLanguage),
     list("Certifications", (normalized.hasCertification ?? []).map(certification)),

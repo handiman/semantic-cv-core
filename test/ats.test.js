@@ -103,9 +103,9 @@ describe("ATS", () => {
         ]
       })
     );
-    assert.match(text, /Professional Experience\nAcme\n/);
+    assert.match(text, /Work Experience\nAcme\n/);
     assert.match(text, /Projects\nSide project\n/);
-    assert.doesNotMatch(text, /Professional Experience\n[\s\S]*Side project[\s\S]*Projects/);
+    assert.doesNotMatch(text, /Work Experience\n[\s\S]*Side project[\s\S]*Projects/);
   });
 
   it("skips roles without a nested organization instead of throwing", () => {
