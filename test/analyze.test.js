@@ -59,6 +59,23 @@ describe("Analyze", () => {
     describe("email", email);
   });
 
+  const withTempDir = async (run) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "myapp-"));
+    try {
+      await run(dir);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  };
+
+  const analyzeSilently = async (analyze, target) => {
+    const { writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const count = await analyze(target, writer);
+    writer.close();
+    return count;
+  };
+
   describe("Analyze Directory", async () => {
     test("with valid file", async () => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), "myapp-"));
@@ -81,6 +98,70 @@ describe("Analyze", () => {
           fs.rmdirSync(dir);
         }
       }
+    });
+  });
+
+  describe("Error count", () => {
+    test("is 0 for a valid file", async () => {
+      await withTempDir(async (dir) => {
+        const file = path.join(dir, "valid.cv.json");
+        createValidFile(file);
+
+        assert.strictEqual(await analyzeSilently(analyzeFile, file), 0);
+      });
+    });
+
+    test("counts the errors in an invalid file", async () => {
+      await withTempDir(async (dir) => {
+        const file = path.join(dir, "invalid.cv.json");
+        fs.writeFileSync(file, JSON.stringify({ "@context": "https://schema.org" }));
+
+        assert.ok((await analyzeSilently(analyzeFile, file)) > 0);
+      });
+    });
+
+    test("is 0 when a file only has warnings", async () => {
+      await withTempDir(async (dir) => {
+        const file = path.join(dir, "warning.cv.json");
+        fs.writeFileSync(
+          file,
+          JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: "Yoda",
+            jobTitle: "Jedi Master",
+            description: "Judge me by my size?",
+            sameAs: []
+          })
+        );
+        const { writable, readable } = new TransformStream();
+        const writer = writable.getWriter();
+
+        const count = await analyzeFile(file, writer);
+        writer.close();
+
+        const output = await readAll(readable.getReader());
+        assert.ok(!output.includes("✔"), "expected the file to report a warning");
+        assert.strictEqual(count, 0);
+      });
+    });
+
+    test("is 0 for a file that was deleted", async () => {
+      await withTempDir(async (dir) => {
+        assert.strictEqual(await analyzeSilently(analyzeFile, path.join(dir, "gone.cv.json")), 0);
+      });
+    });
+
+    test("adds up the errors of every file in a directory", async () => {
+      await withTempDir(async (dir) => {
+        createValidFile(path.join(dir, "valid.cv.json"));
+        fs.writeFileSync(path.join(dir, "a.cv.json"), JSON.stringify({}));
+        fs.writeFileSync(path.join(dir, "b.cv.json"), JSON.stringify({}));
+        const single = await analyzeSilently(analyzeFile, path.join(dir, "a.cv.json"));
+
+        assert.ok(single > 0);
+        assert.strictEqual(await analyzeSilently(analyzeDirectory, dir), single * 2);
+      });
     });
   });
 
