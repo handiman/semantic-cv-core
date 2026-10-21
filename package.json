@@ -10,10 +10,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/handiman/semantic-cv.git"
+    "url": "https://github.com/handiman/semantic-cv-core.git"
   },
   "bugs": {
-    "url": "https://github.com/handiman/semantic-cv/issues"
+    "url": "https://github.com/handiman/semantic-cv-core/issues"
   },
   "homepage": "https://semantic.cv",
   "scripts": {
