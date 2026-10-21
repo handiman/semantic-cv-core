@@ -21,6 +21,7 @@ import pipe from "./pipe.js";
 import analyzeWorksFor from "./analyze/worksFor.js";
 import analyzeAlumniOf from "./analyze/alumniOf.js";
 import analyzeLifeEvent from "./analyze/lifeEvent.js";
+import analyzeKeywords from "./analyze/keywords.js";
 import analyzeHasCredential from "./analyze/hasCredential.js";
 import analyzeHasCertification from "./analyze/hasCertification.js";
 
@@ -290,6 +291,7 @@ export function analyze(raw: string): Record<string, AnalysisResult> {
     optional("sameAs")(notEmpty, listOfUrls),
     optional("skills")(notEmpty, listOfStrings),
     analyzeWorksFor,
+    analyzeKeywords,
     analyzeAlumniOf,
     analyzeLifeEvent,
     analyzeHasCredential,
