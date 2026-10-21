@@ -216,6 +216,88 @@ describe("ATS", () => {
     });
   });
 
+  it("prints email, phone and URL as labelled lines under the job title", () => {
+    const text = formatATS(
+      person({
+        jobTitle: "Architect",
+        email: "me@example.com",
+        telephone: "+46 70 123 45 67",
+        url: "https://example.com"
+      })
+    );
+    assert.strictEqual(
+      text,
+      "Test\nArchitect\nEmail: me@example.com\nPhone: +46 70 123 45 67\nURL: https://example.com\n"
+    );
+  });
+
+  describe("education", () => {
+    const education = (fields) => ({
+      "@type": "Role",
+      ...fields,
+      alumniOf: { "@type": "EducationalOrganization", name: "KTH" }
+    });
+
+    it("is printed under its own heading with school, degree and dates", () => {
+      const text = formatATS(
+        person({
+          alumniOf: [
+            education({ roleName: "MSc Computer Science", startDate: "2010", endDate: "2015" })
+          ]
+        })
+      );
+      assert.match(text, /^Education\nKTH\nMSc Computer Science\n2010 – 2015$/m);
+    });
+
+    it("is kept apart from work experience", () => {
+      const text = formatATS(
+        person({ alumniOf: [education({})], worksFor: [role("Organization", { name: "Acme" })] })
+      );
+      assert.match(text, /Work Experience\nAcme\n[\s\S]*Education\nKTH/);
+    });
+  });
+
+  it("prints only the end date of a role that has no start date", () => {
+    const text = formatATS(
+      person({ worksFor: [role("Organization", { startDate: undefined, endDate: "2019-05" })] })
+    );
+    assert.match(text, /^Acme\nDeveloper\n2019-05$/m);
+  });
+
+  describe("certifications", () => {
+    it("leave out one without a name", () => {
+      const text = formatATS(
+        person({
+          hasCertification: [
+            { "@type": "Certification", issuedBy: "Microsoft" },
+            { "@type": "Certification", name: "AZ-204" }
+          ]
+        })
+      );
+      assert.match(text, /^Certifications\n- AZ-204\n$/m);
+    });
+
+    it("take the issuer from an Organization as well as from a string", () => {
+      const text = formatATS(
+        person({
+          hasCertification: [
+            {
+              "@type": "Certification",
+              name: "AZ-204",
+              issuedBy: { "@type": "Organization", name: "Microsoft" }
+            }
+          ]
+        })
+      );
+      assert.match(text, /^- AZ-204 \(Microsoft\)$/m);
+    });
+  });
+
+  it("prints no location for a place that is only whitespace", () => {
+    const text = formatATS(person({ workLocation: "   ", jobTitle: "Architect" }));
+    assert.strictEqual(text, "Test\nArchitect\n");
+  });
+
   it("omits empty sections", () => {
     assert.strictEqual(formatATS(person({})), "Test\n");
   });
