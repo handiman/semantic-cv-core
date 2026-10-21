@@ -16,6 +16,7 @@ import trimsStrings from "./normalize/trim.js";
 import keepsTheme from "./normalize/keepTheme.js";
 import keywords from "./normalize/keywords.js";
 import sorting from "./normalize/sorting.js";
+import dropsNumbersAndBooleans from "./normalize/dropsNumbersAndBooleans.js";
 import { fixesInvalidContext, removesRedundantContexts, addsMissingContext } from "./normalize/fixContext.js";
 
 describe("Normalize", () => {
@@ -31,6 +32,7 @@ describe("Normalize", () => {
   singleValues();
   keywords();
   sorting();
+  dropsNumbersAndBooleans();
   describe("internals", () => {
     test("removeUndefined", () => {
       assert.deepStrictEqual(
