@@ -11,6 +11,7 @@ import jobTitle from "./analyze/jobTitle.js";
 import sameAs from "./analyze/sameAs.js";
 import knowsAbout from "./analyze/knowsAbout.js";
 import skills from "./analyze/skills.js";
+import keywords from "./analyze/keywords.js";
 import url from "./analyze/url.js";
 import image from "./analyze/image.js";
 import email from "./analyze/email.js";
@@ -52,6 +53,7 @@ describe("Analyze", () => {
     describe("sameAs", sameAs);
     describe("knowsAbout", knowsAbout);
     describe("skills", skills);
+    describe("keywords", keywords);
     describe("url", url);
     describe("image", image);
     describe("email", email);
