@@ -35,6 +35,11 @@ It has no CLI commands and no themes — those live in the CLI repo and in `sema
   [language.ts](language.ts) reads it (`languageOf`), only as a well-formed language tag. `normalize` keeps it at the
   end of the `@context` it sets, the analyzer accepts it after a known context, and `renderHTML` keeps it in the
   published JSON-LD and sets `<html lang>`.
+- **Custom headings and labels** go in the theme object: `"theme": { "name": "lena", "headings": { … }, "labels":
+  { … } }`. [themeOptions.ts](themeOptions.ts) lists the keys (keep them in step with `ThemeOptions` in
+  semantic-cv-themes); `themeOptionsOf(person)` returns them **HTML-escaped**, since themes insert headings as HTML.
+  Call it on the normalized Person, not on the copy `renderHTML` escapes, or they are escaped twice. The analyzer warns
+  about unknown keys and values that aren't text.
 - Import paths end in `.js` (ESM, `module: node20`). Tests import the compiled output through `#core/*`.
 - Prettier is authoritative: double quotes, no trailing commas, width 100.
 

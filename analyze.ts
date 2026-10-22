@@ -17,6 +17,7 @@
  */
 
 import { languageOfContext } from "./language.js";
+import { headingKeys, labelKeys } from "./themeOptions.js";
 import regex from "./regex.js";
 import pipe from "./pipe.js";
 import analyzeWorksFor from "./analyze/worksFor.js";
@@ -264,6 +265,43 @@ const schemaOrg = "https://schema.org";
 const semanticCV = (version: any) => [schemaOrg, `https://semantic.cv/context/${version}.jsonld`];
 
 /**
+ * A theme object may set headings and labels. Each must be an object whose keys are known
+ * headings or labels and whose values are text; anything else is ignored when rendering, so it is
+ * reported as a warning.
+ */
+const validTheme = (context: AnalysisContext): AnalysisContext => {
+  const { object, results } = context;
+  const theme = object.theme;
+  if (!theme || typeof theme !== "object" || Array.isArray(theme)) {
+    return context;
+  }
+  const problems: Array<string> = [];
+  for (const [field, keys] of [
+    ["headings", headingKeys],
+    ["labels", labelKeys]
+  ] as const) {
+    const values = theme[field];
+    if (values === undefined) {
+      continue;
+    }
+    if (!values || typeof values !== "object" || Array.isArray(values)) {
+      problems.push(`theme.${field} must be an object`);
+      continue;
+    }
+    for (const [key, value] of Object.entries(values)) {
+      if (!(keys as ReadonlyArray<string>).includes(key)) {
+        problems.push(`theme.${field}.${key} is unknown; known are ${keys.join(", ")}`);
+      } else if (typeof value !== "string" || !value.trim()) {
+        problems.push(`theme.${field}.${key} must be text`);
+      }
+    }
+  }
+  return problems.length
+    ? { object, results: { ...results, theme: warning(...problems) } }
+    : { object, results: { ...results, theme: Success } };
+};
+
+/**
  * @context must be schema.org or one of the Semantic-CV contexts, optionally followed by
  * { "@language": "…" } with a valid language tag, the language of the CV.
  */
@@ -312,6 +350,7 @@ export function analyze(raw: string): Record<string, AnalysisResult> {
   };
   const { results } = pipe(
     validContext,
+    validTheme,
     mustBe("@type")("Person"),
     mandatory("name"),
     mandatory("jobTitle"),
