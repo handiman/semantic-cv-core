@@ -31,6 +31,10 @@ It has no CLI commands and no themes — those live in the CLI repo and in `sema
 - Known keys are matched case-insensitively by `fixCasing` in [normalize.ts](normalize.ts); a new property must be
   added to its `validKeys` and to the priority lists in [sort.ts](sort.ts).
 - Everything is optional except `@context`, `@type`, `name`, `description` and `jobTitle`.
+- **The CV's language** is the JSON-LD way: `{ "@language": "sv" }` in `@context`, not a property on the Person.
+  [language.ts](language.ts) reads it (`languageOf`), only as a well-formed language tag. `normalize` keeps it at the
+  end of the `@context` it sets, the analyzer accepts it after a known context, and `renderHTML` keeps it in the
+  published JSON-LD and sets `<html lang>`.
 - Import paths end in `.js` (ESM, `module: node20`). Tests import the compiled output through `#core/*`.
 - Prettier is authoritative: double quotes, no trailing commas, width 100.
 

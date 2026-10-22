@@ -1,6 +1,7 @@
 import analyzer from "../analyze.js";
 import { commentSafe, escapeForHtml, escapeHtml, jsonForScript } from "./escape.js";
 import { HTMLTransformer } from "../transform.js";
+import { languageOf } from "../language.js";
 const siteName = "Semantic CV";
 
 /**
@@ -50,7 +51,16 @@ export async function renderHTML(options: {
   const analysisResults = commentSafe(analyze(JSON.stringify(stripVocab(person))));
   const { description } = safePerson;
 
+  const language = languageOf(person);
   transformer
+    .on(`html`, {
+      element(root: any) {
+        // A language tag holds only letters, digits and hyphens (see language.ts).
+        if (language) {
+          root.setAttribute("lang", language);
+        }
+      }
+    })
     .on(`head`, {
       element(head: any) {
         head.append(
@@ -208,7 +218,10 @@ const cleananalysisResults = (analysisResults: Record<string, any>) => {
 const stripVocab = (person: any) => {
   const result = { ...person };
   delete result.theme;
-  result["@context"] = "https://schema.org";
+  const language = languageOf(person);
+  result["@context"] = language
+    ? ["https://schema.org", { "@language": language }]
+    : "https://schema.org";
   return result;
 };
 
