@@ -94,6 +94,9 @@ describe("analyze", () => {
 });
 
 describe("renderHTML", () => {
+  // The JSON-LD between the opening and the closing tag of the script element renderHTML writes.
+  const jsonIn = (script) =>
+    JSON.parse(script.slice(script.indexOf(">") + 1, script.lastIndexOf("</")));
   // Records what renderHTML asks the transformer to do with each element.
   const render = async (person) => {
     const hooks = [];
@@ -153,7 +156,7 @@ describe("renderHTML", () => {
     const [, json] = run('head script[type="application/ld+json"]').find(
       ([name]) => name === "replace"
     );
-    const ld = JSON.parse(json.replace(/^\s*<script[^>]*>|<\/script>\s*$/g, ""));
+    const ld = jsonIn(json);
     assert.deepStrictEqual(ld["@context"], ["https://schema.org", { "@language": "sv" }]);
   });
 
@@ -162,7 +165,7 @@ describe("renderHTML", () => {
     const [, json] = run('head script[type="application/ld+json"]').find(
       ([name]) => name === "replace"
     );
-    const ld = JSON.parse(json.replace(/^\s*<script[^>]*>|<\/script>\s*$/g, ""));
+    const ld = jsonIn(json);
     assert.strictEqual(ld["@context"], "https://schema.org");
   });
 });
