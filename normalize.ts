@@ -24,6 +24,7 @@ import normalizeLifeEvent from "./normalize/lifeEvent.js";
 import normalizeHasCredential from "./normalize/hasCredential.js";
 import normalizeHasCertification from "./normalize/hasCertification.js";
 import { sortFields } from "./sort.js";
+import { languageOf } from "./language.js";
 
 /**
  * Fix casing of known schema.org keys (case‑insensitive match).
@@ -219,12 +220,20 @@ export const setType = (type: string) => (initial: any) => {
 };
 
 /**
- * Ensure @context is always present.
+ * Ensure @context is always present. The language of the CV, given as { "@language": "…" } in
+ * the @context, is kept; anything else in it is replaced.
  */
-const setContext = (person: any) => ({
-  ...person,
-  "@context": ["https://schema.org", "https://semantic.cv/context/latest.jsonld"]
-});
+const setContext = (person: any) => {
+  const language = languageOf(person);
+  return {
+    ...person,
+    "@context": [
+      "https://schema.org",
+      "https://semantic.cv/context/latest.jsonld",
+      ...(language ? [{ "@language": language }] : [])
+    ]
+  };
+};
 
 /**
  * Remove @context from nested objects.
@@ -310,7 +319,7 @@ export const normalize = {
     removeEmpty,
     removeNull,
     removeUndefined,
-    removeContext,
+    // setContext replaces the whole @context, keeping only the language from it.
     setContext,
     setType("Person"),
     normalizeWorksFor,

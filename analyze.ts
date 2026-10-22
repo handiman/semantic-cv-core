@@ -16,6 +16,8 @@
  * on files lives in analyzeFiles.ts.
  */
 
+import { languageOfContext } from "./language.js";
+import { headingKeys, labelKeys } from "./themeOptions.js";
 import regex from "./regex.js";
 import pipe from "./pipe.js";
 import analyzeWorksFor from "./analyze/worksFor.js";
@@ -263,6 +265,76 @@ const schemaOrg = "https://schema.org";
 const semanticCV = (version: any) => [schemaOrg, `https://semantic.cv/context/${version}.jsonld`];
 
 /**
+ * A theme object may set headings and labels. Each must be an object whose keys are known
+ * headings or labels and whose values are text; anything else is ignored when rendering, so it is
+ * reported as a warning.
+ */
+const validTheme = (context: AnalysisContext): AnalysisContext => {
+  const { object, results } = context;
+  const theme = object.theme;
+  if (!theme || typeof theme !== "object" || Array.isArray(theme)) {
+    return context;
+  }
+  const problems: Array<string> = [];
+  for (const [field, keys] of [
+    ["headings", headingKeys],
+    ["labels", labelKeys]
+  ] as const) {
+    const values = theme[field];
+    if (values === undefined) {
+      continue;
+    }
+    if (!values || typeof values !== "object" || Array.isArray(values)) {
+      problems.push(`theme.${field} must be an object`);
+      continue;
+    }
+    for (const [key, value] of Object.entries(values)) {
+      if (!(keys as ReadonlyArray<string>).includes(key)) {
+        problems.push(`theme.${field}.${key} is unknown; known are ${keys.join(", ")}`);
+      } else if (typeof value !== "string" || !value.trim()) {
+        problems.push(`theme.${field}.${key} must be text`);
+      }
+    }
+  }
+  return problems.length
+    ? { object, results: { ...results, theme: warning(...problems) } }
+    : { object, results: { ...results, theme: Success } };
+};
+
+/**
+ * @context must be schema.org or one of the Semantic-CV contexts, optionally followed by
+ * { "@language": "…" } with a valid language tag, the language of the CV.
+ */
+const validContext = (context: AnalysisContext): AnalysisContext => {
+  const { object, results } = context;
+  const value = object["@context"];
+  const known = [schemaOrg, semanticCV("latest"), semanticCV("1.0")];
+  const entries = Array.isArray(value) ? value : [value];
+  const last = entries[entries.length - 1];
+  const hasLanguage = last && typeof last === "object" && !Array.isArray(last);
+  const base = hasLanguage ? entries.slice(0, -1) : value;
+  const baseIsKnown = known.some(
+    (k) => equals(base, k) || (Array.isArray(base) && base.length === 1 && equals(base[0], k))
+  );
+  const languageIsValid =
+    !hasLanguage || (Object.keys(last).length === 1 && languageOfContext([last]) !== undefined);
+  const isValid = baseIsKnown && languageIsValid;
+  return {
+    object,
+    results: {
+      ...results,
+      ["@context"]: isValid
+        ? Success
+        : error(
+            languageIsValid
+              ? `Value must be any of ${JSON.stringify(known, null, 2)}, optionally followed by { "@language": "<language tag>" }`
+              : `{ "@language": … } must hold a language tag, such as "sv" or "en-GB"`
+          )
+    }
+  };
+};
+
+/**
  * Analyze a raw JSON‑LD string and return a map of field → AnalysisResult.
  *
  * The pipeline validates:
@@ -277,7 +349,8 @@ export function analyze(raw: string): Record<string, AnalysisResult> {
     results: {}
   };
   const { results } = pipe(
-    canBe("@context")(schemaOrg, semanticCV("latest"), semanticCV("1.0")),
+    validContext,
+    validTheme,
     mustBe("@type")("Person"),
     mandatory("name"),
     mandatory("jobTitle"),
