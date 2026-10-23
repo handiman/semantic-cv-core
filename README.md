@@ -3,6 +3,7 @@
 <img src="https://assets.semantic.cv/semantikitten-coding.png" alt="Coding Semantikitten" height="100" align="right" style="margin-left: 20px;" />
 
 [![CI](https://github.com/handiman/semantic-cv-core/actions/workflows/ci.yml/badge.svg)](https://github.com/handiman/semantic-cv-core/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/handiman/semantic-cv-core/badge)](https://scorecard.dev/viewer/?uri=github.com/handiman/semantic-cv-core)
 [![License](https://img.shields.io/github/license/handiman/semantic-cv-core)](LICENSE)
 
 Semantic‑CV Core contains the **shared logic** used by both the Semantic‑CV CLI and the upcoming site at [semantic.cv][semantic-cv]. It provides the foundational processing pipeline that turns raw CV data into clean, deterministic output.
