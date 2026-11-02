@@ -13,12 +13,12 @@ describe("themeOptionsOf", () => {
         "@type": "Theme",
         name: "lena",
         headings: { worksFor: "Uppdrag", skills: "Verktyg" },
-        labels: { present: "nu" }
+        labels: { present: "nu", years: "år" }
       })
     );
     assert.deepStrictEqual(options, {
       headings: { worksFor: "Uppdrag", skills: "Verktyg" },
-      labels: { present: "nu" }
+      labels: { present: "nu", years: "år" }
     });
   });
 
