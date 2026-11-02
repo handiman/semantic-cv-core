@@ -4,7 +4,7 @@ import { escapeHtml } from "./render/escape.js";
  * The headings and labels a CV can set for its theme, in its theme object:
  *
  *   "theme": { "@type": "Theme", "name": "lena", "headings": { "worksFor": "Uppdrag" },
- *              "labels": { "present": "nu" } }
+ *              "labels": { "present": "nu", "years": "år" } }
  *
  * The keys are those of ThemeOptions in semantic-cv-themes; keep the two in step.
  */
@@ -21,7 +21,7 @@ export const headingKeys = [
   "lifeEvent"
 ] as const;
 
-export const labelKeys = ["present"] as const;
+export const labelKeys = ["present", "years"] as const;
 
 export type CustomThemeOptions = {
   headings?: Partial<Record<(typeof headingKeys)[number], string>>;
