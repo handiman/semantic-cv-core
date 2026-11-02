@@ -1,0 +1,9 @@
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-02-01
+reason = "minimatch DoS in dev tooling only (eslint, c8, rimraf); no untrusted glob input, not shipped to npm. No upstream fix yet."
+
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2027-02-01
+reason = "glob AbortSignal bypass in dev tooling only (rimraf, c8); not used with untrusted input, not shipped to npm. No upstream fix yet."
