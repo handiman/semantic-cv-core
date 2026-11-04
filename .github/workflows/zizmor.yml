@@ -14,7 +14,7 @@ jobs:
   zizmor:
     name: zizmor
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted,linux]
     permissions:
       contents: read
     steps:
@@ -30,7 +30,7 @@ jobs:
   upload:
     name: zizmor (code scanning)
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted,linux]
     permissions:
       contents: read
       security-events: write # upload SARIF to code scanning
