@@ -17,7 +17,7 @@
  */
 
 import { languageOfContext } from "./language.js";
-import { headingKeys, labelKeys } from "./themeOptions.js";
+import { colorKeys, headingKeys, isColor, labelKeys } from "./themeOptions.js";
 import regex from "./regex.js";
 import pipe from "./pipe.js";
 import analyzeWorksFor from "./analyze/worksFor.js";
@@ -265,7 +265,7 @@ const schemaOrg = "https://schema.org";
 const semanticCV = (version: any) => [schemaOrg, `https://semantic.cv/context/${version}.jsonld`];
 
 /**
- * A theme object may set headings and labels. Each must be an object whose keys are known
+ * A theme object may set headings, labels and colors. Each must be an object whose keys are known
  * headings or labels and whose values are text; anything else is ignored when rendering, so it is
  * reported as a warning.
  */
@@ -278,7 +278,8 @@ const validTheme = (context: AnalysisContext): AnalysisContext => {
   const problems: Array<string> = [];
   for (const [field, keys] of [
     ["headings", headingKeys],
-    ["labels", labelKeys]
+    ["labels", labelKeys],
+    ["colors", colorKeys]
   ] as const) {
     const values = theme[field];
     if (values === undefined) {
@@ -291,8 +292,14 @@ const validTheme = (context: AnalysisContext): AnalysisContext => {
     for (const [key, value] of Object.entries(values)) {
       if (!(keys as ReadonlyArray<string>).includes(key)) {
         problems.push(`theme.${field}.${key} is unknown; known are ${keys.join(", ")}`);
-      } else if (typeof value !== "string" || !value.trim()) {
-        problems.push(`theme.${field}.${key} must be text`);
+      } else if (
+        field === "colors" ? !isColor(value) : typeof value !== "string" || !value.trim()
+      ) {
+        problems.push(
+          field === "colors"
+            ? `theme.colors.${key} must be a CSS color such as #336699, rgb(51, 102, 153) or navy`
+            : `theme.${field}.${key} must be text`
+        );
       }
     }
   }

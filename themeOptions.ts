@@ -23,9 +23,28 @@ export const headingKeys = [
 
 export const labelKeys = ["present", "years"] as const;
 
+export const colorKeys = [
+  "text",
+  "textMuted",
+  "background",
+  "heading",
+  "accent",
+  "link",
+  "border"
+] as const;
+
+/**
+ * Whether `value` is a CSS color that is safe to put in a stylesheet: a hex color, a color name, or
+ * rgb(), rgba(), hsl() or hsla(). Keep it in step with isColor in semantic-cv-themes.
+ */
+export const isColor = (value: unknown): value is string =>
+  typeof value === "string" &&
+  /^(#[0-9a-f]{3,8}|[a-z]+|(?:rgb|hsl)a?\([0-9a-z%.,\s/+-]+\))$/i.test(value.trim());
+
 export type CustomThemeOptions = {
   headings?: Partial<Record<(typeof headingKeys)[number], string>>;
   labels?: Partial<Record<(typeof labelKeys)[number], string>>;
+  colors?: Partial<Record<(typeof colorKeys)[number], string>>;
 };
 
 const pick = (values: unknown, keys: ReadonlyArray<string>): Record<string, string> | undefined => {
@@ -36,6 +55,17 @@ const pick = (values: unknown, keys: ReadonlyArray<string>): Record<string, stri
     .map((key) => [key, (values as Record<string, unknown>)[key]] as const)
     .filter(([, value]) => typeof value === "string" && value.trim())
     .map(([key, value]) => [key, escapeHtml((value as string).trim())]);
+  return picked.length ? Object.fromEntries(picked) : undefined;
+};
+
+const pickColors = (values: unknown): Record<string, string> | undefined => {
+  if (!values || typeof values !== "object" || Array.isArray(values)) {
+    return undefined;
+  }
+  const picked = colorKeys
+    .map((key) => [key, (values as Record<string, unknown>)[key]] as const)
+    .filter(([, value]) => isColor(value))
+    .map(([key, value]) => [key, (value as string).trim()]);
   return picked.length ? Object.fromEntries(picked) : undefined;
 };
 
@@ -51,10 +81,15 @@ export const themeOptionsOf = (person: unknown): CustomThemeOptions | undefined 
   }
   const headings = pick(theme.headings, headingKeys);
   const labels = pick(theme.labels, labelKeys);
-  if (!headings && !labels) {
+  const colors = pickColors(theme.colors);
+  if (!headings && !labels && !colors) {
     return undefined;
   }
-  return { ...(headings ? { headings } : {}), ...(labels ? { labels } : {}) };
+  return {
+    ...(headings ? { headings } : {}),
+    ...(labels ? { labels } : {}),
+    ...(colors ? { colors } : {})
+  };
 };
 
 export default themeOptionsOf;

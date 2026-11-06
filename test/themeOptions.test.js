@@ -109,3 +109,35 @@ describe("analyze", () => {
     assert.strictEqual(themeResult("lena"), undefined);
   });
 });
+
+describe("colors", () => {
+  it("gives the valid colors the CV sets", () => {
+    const options = themeOptionsOf(
+      withTheme({ colors: { accent: " #336699 ", background: "rgb(1, 2, 3)", link: "navy" } })
+    );
+    assert.deepStrictEqual(options, {
+      colors: { background: "rgb(1, 2, 3)", accent: "#336699", link: "navy" }
+    });
+  });
+
+  it("leaves out unknown keys and values that aren't plain colors", () => {
+    assert.strictEqual(
+      themeOptionsOf(
+        withTheme({ colors: { accent: "red; } a {", link: "url(x)", border: 3, other: "red" } })
+      ),
+      undefined
+    );
+  });
+
+  it("warns in the analysis about colors that are ignored", () => {
+    const { warnings } = analyze(
+      JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: "Ada",
+        theme: { colors: { accent: "x;y", pink: "red", link: "navy" } }
+      })
+    ).theme;
+    assert.strictEqual(warnings.length, 2, JSON.stringify(warnings));
+  });
+});
